@@ -2,7 +2,7 @@ import sys
 
 from typing import Tuple
 from enum import Enum
-from random import shuffle
+from random import shuffle, choice
 
 class Direction(Enum):
     DOWN = 0
@@ -148,5 +148,60 @@ class Board:
                             print("Placed %s" % word)
                             return True
         return False
+
+    def generate(self, words: list[str]):
+        """Adds a list of words into the cross word"""
+
+        words = list(reversed(sorted(words, key=len)))
+
+        # Place a seed word if the board is currently empty
+        if len(self.words) == 0:
+            first_word = words.pop(0)
+
+            x = int(self.width / 2 - len(first_word) / 2)
+            y = int(self.height / 2)
+            direction = choice([Direction.ACROSS, Direction.DOWN])
+            self.place_word(first_word, x, y, direction)
+
+        # Sort the words by size (each bucket has two sizes of words to make it a bit more interesting)
+        buckets: dict[int, list[str]] = {}
+        for word in words:
+            length = int(len(word) / 2)
+            if length in buckets.keys():
+                buckets[length].append(word)
+            else:
+                buckets[length] = [word]
+
+        # Each word gets retried twice at different stages. Once in the round after it was first tried, and once at the end when all words have been placed or attempted twice.
+        discarded_words: list[str] = []
+        unused_words: list[str] = []
+        for bucket in buckets.values():
+            # Add an element of random to create more varied puzzles
+            shuffle(bucket)
+
+            last_bucket_unused_words = unused_words
+            unused_words = []
+
+            # Attempt to place all words in the current bucket
+            for word in bucket:
+                if not self.try_place(word):
+                    unused_words.append(word)
+
+            # Attempt to place all words that could not be placed from the previous bucket
+            for word in last_bucket_unused_words:
+                if self.try_place(word):
+                    last_bucket_unused_words.remove(word)
+
+            # Save any words that still haven't been placed to be attempted once more right at the end
+            discarded_words.extend(last_bucket_unused_words)
+
+        # Try to place all words from the final round again
+        for word in unused_words:
+            self.try_place(word)
+
+        # Give all remaining words a final chance
+        for word in discarded_words:
+            self.try_place(word)
+
 
     
