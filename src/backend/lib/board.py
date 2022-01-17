@@ -5,8 +5,8 @@ from enum import Enum
 from random import shuffle, choice
 
 class Direction(Enum):
-    DOWN = 0
-    ACROSS = 1
+    DOWN = "down"
+    ACROSS = "across"
 
 class Board:
     width: int
@@ -85,7 +85,7 @@ class Board:
             startY = y
             endY = startY + len(word) - 1
 
-            if endY >= self.height:
+            if startY < 0 or endY >= self.height:
                 return False
 
             if self.cell(x, startY - 1) != " ":
@@ -152,6 +152,7 @@ class Board:
     def generate(self, words: list[str]):
         """Adds a list of words into the cross word"""
 
+        # Sort by length in descending order (attempt to place bigger words first)
         words = list(reversed(sorted(words, key=len)))
 
         # Place a seed word if the board is currently empty
