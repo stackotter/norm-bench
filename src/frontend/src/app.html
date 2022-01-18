@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="description" content="" />
+		<link rel="icon" href="%svelte.assets%/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		%svelte.head%
+	</head>
+	<body>
+		<div id="svelte">%svelte.body%</div>
+	</body>
+
+	<style>
+		html {
+			font-family: sans-serif;
+			background-color: #E3DAD6;
+		}
+
+		h1 {
+			font-size: 3rem;
+			font-weight: normal;
+			margin-bottom: 1.5rem;
+			margin-top: 0rem;
+		}
+
+		h2 {
+			font-size: 2.5rem;
+			font-weight: normal;
+			margin-bottom: 1.5rem;
+			margin-top: 0rem;
+		}
+
+		input {
+			border: 2px #EF894A solid;
+			border-radius: 0.25rem;
+			font-size: 1rem;
+			padding: 0.75rem;
+			width: 17rem;
+			display: block;
+			margin: auto;
+			margin-bottom: 1rem;
+		}
+
+		#error {
+			color: red;
+		}
+		
+		.button {
+			text-decoration: none;
+			display: block;
+			background-color: #EF894A;
+			color: white;
+			padding: 0.75rem 0rem;
+			width: 9rem;
+			border: none;
+			border: 2px #EF894A solid;
+			border-radius: 0.25rem;
+			font-size: 1rem;
+			margin: 0;
+			cursor: pointer;
+		}
+
+		.secondary-button {
+			background-color: white;
+			color: black;
+		}
+
+		.button-group {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.button-group .button {
+			margin-left: 0.25rem;
+			margin-right: 0.25rem;
+		}
+
+		/* Chrome, Safari, Edge, Opera */
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+			-webkit-appearance: none;
+			margin: 0;
+		}
+
+		/* Firefox */
+		input[type=number] {
+			-moz-appearance: textfield;
+		}
+	</style>
+</html>

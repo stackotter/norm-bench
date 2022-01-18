@@ -15,4 +15,5 @@ def generate_board() -> Board:
 
     board = Board(10, 10)
     board.generate(words)
+    board.letters = ['b', 'r', 'e', 'a', 't', 'h', 'e']
     return board

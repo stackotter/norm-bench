@@ -13,6 +13,7 @@ class Board:
     height: int
     rows: list[list[str]]
     words: list[Tuple[int, int, Direction, str]]
+    letters: list[str]
 
     def __init__(self, width, height):
         self.rows = []
@@ -25,6 +26,7 @@ class Board:
         self.width = width
         self.height = height
         self.words = []
+        self.letters = []
 
     def print(self):
         for row in self.rows:
@@ -113,7 +115,6 @@ class Board:
         shuffle(placed_words)
         # placed_words = sorted(placed_words, key=lambda x: int(len(x)/4))
         for (placed_x, placed_y, placed_direction, placed_word) in placed_words:
-            print("Trying to place %s on %s" % (word, placed_word))
             # Find all locations that letters match between the two words
             locations: dict[str, list[int]] = {}
             unique_letters = set(placed_word)
@@ -159,10 +160,15 @@ class Board:
         if len(self.words) == 0:
             first_word = words.pop(0)
 
-            x = int(self.width / 2 - len(first_word) / 2)
-            y = int(self.height / 2)
             direction = choice([Direction.ACROSS, Direction.DOWN])
-            self.place_word(first_word, x, y, direction)
+            if direction == Direction.ACROSS:
+                x = int(self.width / 2 - len(first_word) / 2)
+                y = int(self.height / 2)
+                self.place_word(first_word, x, y, direction)
+            else:
+                x = int(self.width / 2)
+                y = int(self.height / 2 - len(first_word) / 2)
+                self.place_word(first_word, x, y, direction)
 
         # Sort the words by size (each bucket has two sizes of words to make it a bit more interesting)
         buckets: dict[int, list[str]] = {}
