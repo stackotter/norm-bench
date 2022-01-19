@@ -93,4 +93,4 @@ def join_room():
         "players": room.players
     })
 
-app.run("0.0.0.0", port=8080)
+app.run("0.0.0.0", port=8081)

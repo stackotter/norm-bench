@@ -16,7 +16,7 @@
 
         isLoading = true;
 
-        fetch('http://localhost:8080/join_room?' + new URLSearchParams({
+        fetch('https://backend.stackotter.dev:8081/join_room?' + new URLSearchParams({
             'room_id': roomId.toString(),
             'username': username,
         })).then(async response => {

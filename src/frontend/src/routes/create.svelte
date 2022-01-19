@@ -16,7 +16,7 @@
 
         isLoading = true;
 
-        fetch('http://localhost:8080/create_room?' + new URLSearchParams({
+        fetch('https://backend.stackotter.dev:8081/create_room?' + new URLSearchParams({
             'username': username,
         })).then(async response => {
             if (response.status != 200) {
