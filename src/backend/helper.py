@@ -13,7 +13,8 @@ from lib.scraper import get_letters_and_words
 def generate_board() -> Board:
     words = ['eat', 'era', 'hat', 'tea', 'bare', 'bet', 'bat', 'art', 'beat', 'tree', 'here', 'herb', 'beer', 'bear', 'rate', 'the', 'rat', 'her', 'ear', 'bee', 'earth', 'there', 'tear', 'three', 'heat', 'breathe', 'breath', 'heart', 'hear', 'hate', 'bath', 'bar']
 
-    board = Board(10, 10)
+    board = Board(14, 14)
     board.generate(words)
     board.letters = ['b', 'r', 'e', 'a', 't', 'h', 'e']
+    board.shrink()
     return board

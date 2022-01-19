@@ -210,5 +210,62 @@ class Board:
         for word in discarded_words:
             self.try_place(word)
 
+    def shrink(self):
+        """Shrinks the board to fit the words it contains"""
+
+        # Remove empty rows and find empty columns
+        leftmost_column = None
+        rightmost_column = None
+        first_row_index = None
+        removed_row_count = 0
+        for (i, row) in enumerate(self.rows):
+            contains_letter = False
+            for cell in row:
+                if cell != " ":
+                    contains_letter = True
+                    break
+            if not contains_letter:
+                self.rows.pop(i - removed_row_count)
+                removed_row_count += 1
+            else:
+                if first_row_index == None:
+                    first_row_index = i
+                has_found_first_column = False
+                for (i, cell) in enumerate(row):
+                    if cell != " ":
+                        if not has_found_first_column and (leftmost_column == None or leftmost_column > i):
+                            has_found_first_column = True
+                            leftmost_column = i
+                        if rightmost_column == None or rightmost_column < i:
+                            rightmost_column = i
+
+        # Adjust the y coordinate of all words accordingly
+        if first_row_index != None and first_row_index != 0:
+            for i in range(len(self.words)):
+                word = list(self.words[i])
+                word[1] -= first_row_index
+                self.words[i] = tuple(word)
+
+        # Adjust the x coordinate of all words accordingly
+        if leftmost_column != None and leftmost_column != 0:
+            for i in range(len(self.words)):
+                word = list(self.words[i])
+                word[0] -= leftmost_column
+                self.words[i] = tuple(word)
+        
+        # Adjust the dimensions of the board accordingly
+        self.height = len(self.rows)
+        self.width = rightmost_column - leftmost_column + 1
+
+        # Remove empty columns
+        for row in self.rows:
+            for i in range(len(row)):
+                if i < leftmost_column:
+                    row.pop(i)
+                elif i > rightmost_column:
+                    row.pop(i)
+                            
+
+
 
     

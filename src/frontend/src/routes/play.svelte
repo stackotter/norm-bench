@@ -7,8 +7,11 @@
 
     var rows: string[][];
     var letters: string[];
+    var placedWords: string[] = [];
 
     var guess = "";
+
+    var won = false;
 
     const shuffleLetters = () => {
         let currentIndex = letters.length, randomIndex;
@@ -37,7 +40,10 @@
     }
 
     const placeWord = (word: Word, asEmpty: boolean) => {
-        console.log(`${word.word}, x ${word.x}, y ${word.y}`)
+        if (!asEmpty) {
+            placedWords.push(word.word);
+        }
+
         for (var offset = 0; offset < word.word.length; offset++) {
             if (word.direction == "down") {
                 var y = word.y + offset;
@@ -66,6 +72,8 @@
                 placeWord(word, true);
             });
 
+            console.log(`${room.width}x${room.height}`);
+
             letters = room.letters;
 
             shuffleLetters();
@@ -73,11 +81,20 @@
     })
 
     const submitGuess = () => {
-        console.log("submit")
+        if (placedWords.includes(guess)) {
+            return
+        }
+
         for (const word of room.words) {
             if (word.word == guess) {
                 placeWord(word, false);
                 guess = "";
+
+                if (placedWords.length == room.words.length) {
+                    won = true;
+                }
+
+                return
             }
         }
     }
@@ -100,11 +117,11 @@
                 <div class="row">
                     {#each row as cell}
                         {#if cell == "."}
-                            <div class="square background-square"/>
+                            <div class="square background-square"></div>
                         {:else if cell == " "}
-                            <div class="square empty-square"/>
+                            <div class="square empty-square"></div>
                         {:else}
-                            <div class="square">{cell.toUpperCase()}</div>
+                            <div class="square filled-square">{cell.toUpperCase()}</div>
                         {/if}
                     {/each}
                 </div>
@@ -117,7 +134,7 @@
         </div>
         <div id="form">
             <input type="text" placeholder="Enter a word..." bind:value={guess} autofocus on:keydown={onKeyDown}>
-            <button class="button">Go</button>
+            <button class="button" on:click={submitGuess}>Go</button>
         </div>
     {:else}
         <div>Loading...</div>
@@ -125,9 +142,30 @@
 </Centered>
 
 <style>
+    #grid {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 60vw;
+        height: 60vh;
+        margin: 0;
+        padding: 0;
+    }
+
+    .row {
+        display: flex;
+        flex-direction: row;
+        flex-grow: 1;
+        flex-shrink: 0;
+        flex-basis: 0;
+        width: 100%;
+    }
+
     .square {
-        width: 4rem;
-        height: 4rem;
+        flex-grow: 1;
+        flex-shrink: 0;
+        flex-basis: 0;
         background-color: #EF894A;
         display: flex;
         align-items: center;
@@ -135,29 +173,45 @@
         margin: 0.1rem;
     }
 
+    .filled-square {
+        animation: fade-in 500ms;
+    }
+
+    @keyframes fade-in {
+        from {
+            background-color: #bbb;
+        }
+
+        to {
+            background-color: #EF894A;
+        }
+    }
+
     #letters {
         display: flex;
         flex-direction: row;
         align-items: center;
         justify-content: center;
+        margin: auto;
         margin-top: 4rem;
+        width: 29.5rem;
     }
 
     .letter {
         background-color: #FAFAD6;
+        width: 4rem;
+        height: 4rem;
+        flex-grow: none;
     }
     
     .empty-square {
         background-color: #bbb;
+        color: #bbb;
     }
 
     .background-square {
         background-color: #00000000;
-    }
-
-    .row {
-        display: flex;
-        flex-direction: row;
+        color: #00000000;
     }
 
     #room-id {
