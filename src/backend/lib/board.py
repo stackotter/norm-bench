@@ -139,14 +139,12 @@ class Board:
                         y = placed_y - index
                         if self.can_place_word(word, x, y, Direction.DOWN):
                             self.place_word(word, x, y, Direction.DOWN)
-                            print("Placed %s" % word)
                             return True
                     if placed_direction == Direction.DOWN:
                         x = placed_x - index
                         y = placed_y + offset
                         if self.can_place_word(word, x, y, Direction.ACROSS):
                             self.place_word(word, x, y, Direction.ACROSS)
-                            print("Placed %s" % word)
                             return True
         return False
 

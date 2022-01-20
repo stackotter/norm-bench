@@ -5,3 +5,4 @@ from dataclasses import dataclass
 class Room:
     players: list[str]
     board: Board
+    seed: str

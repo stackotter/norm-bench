@@ -1,6 +1,6 @@
 <script lang="ts">
     import Centered from '$lib/Centered.svelte';
-    import { room_store, Room } from '$lib/stores';
+    import { room_store } from '$lib/stores';
     import { goto } from '$app/navigation';
     import { backendURL } from '$lib/env';
 
@@ -26,22 +26,7 @@
                 isLoading = false;
             } else {
                 let json = await response.json();
-                let words = json["words"];
-                let roomId = json["room_id"];
-                let players = json["players"];
-                let width = json["width"];
-                let height = json["height"];
-                let letters = json["letters"];
-                let room: Room = {
-                    username: username,
-                    players: players,
-                    roomId: roomId,
-                    words: words,
-                    width: width,
-                    height: height,
-                    letters: letters,
-                };
-                room_store.set(room);
+                room_store.set(json);
                 goto('/lobby');
             }
         })

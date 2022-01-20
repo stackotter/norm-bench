@@ -1,3 +1,5 @@
+import uuid
+
 from flask import Flask, request, jsonify
 from dataclasses import dataclass
 from flask_cors import CORS
@@ -26,6 +28,11 @@ def create_room():
     username = request.args.get("username")
     if username == None:
         return "Please provide a username", 400
+
+    # Optional
+    seed = request.args.get("seed")
+    if seed == None:
+        seed = uuid.uuid4().hex
     
     room_id = None
     if len(free_room_ids) != 0:
@@ -35,14 +42,13 @@ def create_room():
         next_room_id += 1
 
     players = [username]
-    board = generate_board()
-    board.print()
+    board = generate_board(seed)
 
-    new_room = Room(players, board)
+    new_room = Room(players, board, seed)
     rooms[room_id] = new_room
 
     return jsonify({
-        "room_id": room_id,
+        "roomId": room_id,
         "width": board.width,
         "height": board.height,
         "words": [{
@@ -52,7 +58,8 @@ def create_room():
             "word": word[3]
         } for word in board.words],
         "players": players,
-        "letters": board.letters
+        "letters": board.letters,
+        "seed": seed
     })
 
 @app.route("/join_room")
@@ -81,7 +88,7 @@ def join_room():
     rooms[room_id] = room
 
     return jsonify({
-        "room_id": room_id,
+        "roomId": room_id,
         "width": room.board.width,
         "height": room.board.height,
         "words": [{
@@ -90,7 +97,8 @@ def join_room():
             "direction": word[2].value,
             "word": word[3]
         } for word in room.board.words],
-        "players": room.players
+        "players": room.players,
+        "seed": room.seed
     })
 
 if __name__ == "__main__":

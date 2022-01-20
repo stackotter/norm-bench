@@ -1,7 +1,9 @@
 <script lang="ts">
     import Centered from '$lib/Centered.svelte';
-    import { room_store, Word } from '$lib/stores';
+    import { room_store } from '$lib/stores';
     import { onDestroy } from 'svelte';
+
+    import type { Word } from '$lib/room';
 
     var room;
 
@@ -111,7 +113,10 @@
 
 <Centered>
     {#if room != null && room != undefined}
-        <div id="room-id">Room id: {room.roomId}</div>
+        <div id="room-info">
+            <div>Room id: {room.roomId}</div>
+            <div>Seed: {room.seed}</div>
+        </div>
         <div id="grid">
             {#each rows as row}
                 <div class="row">
@@ -214,11 +219,15 @@
         color: #00000000;
     }
 
-    #room-id {
-        font-weight: bold;
+    #room-info {
         position: fixed;
-        top: 1rem;
+        bottom: 1rem;
         right: 1rem;
+        text-align: right;
+    }
+
+    #room-info div {
+        margin-top: 0.5rem;
     }
 
     input, .button {
