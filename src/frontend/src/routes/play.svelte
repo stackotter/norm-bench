@@ -4,6 +4,7 @@
     import { onDestroy } from 'svelte';
 
     import type { Word } from '$lib/room';
+import { clear_loops } from 'svelte/internal';
 
     var room;
 
@@ -41,7 +42,7 @@
         rows[y][x] = value;
     }
 
-    const placeWord = (word: Word, asEmpty: boolean) => {
+    const placeWord = (word: Word, asEmpty: boolean, gaveUp: boolean) => {
         if (!asEmpty) {
             placedWords.push(word.word);
             placedWords = placedWords;
@@ -50,10 +51,16 @@
         for (var offset = 0; offset < word.word.length; offset++) {
             if (word.direction == "down") {
                 var y = word.y + offset;
-                setCell(word.x, y, asEmpty ? " " : word.word[offset]);
+                if (gaveUp && rows[y][word.x] != " ") {
+                    continue
+                }
+                setCell(word.x, y, asEmpty ? " " : (gaveUp ? `|${word.word[offset]}|` : word.word[offset]));
             } else {
                 var x = word.x + offset;
-                setCell(x, word.y, asEmpty ? " " : word.word[offset]);
+                if (gaveUp && rows[word.y][x] != " ") {
+                    continue
+                }
+                setCell(x, word.y, asEmpty ? " " : (gaveUp ? `|${word.word[offset]}|` : word.word[offset]));
             }
         }
     }
@@ -72,7 +79,7 @@
             }
 
             room.words.forEach(word => {
-                placeWord(word, true);
+                placeWord(word, true, false);
             });
 
             console.log(`${room.width}x${room.height}`);
@@ -90,7 +97,7 @@
 
         for (const word of room.words) {
             if (word.word == guess) {
-                placeWord(word, false);
+                placeWord(word, false, false);
                 guess = "";
 
                 if (placedWords.length == room.words.length) {
@@ -107,6 +114,14 @@
             event.preventDefault();
             submitGuess();
         }
+    }
+
+    const giveUp = () => {
+        room.words.forEach(word => {
+            if (!placedWords.includes(word)) {
+                placeWord(word, false, true);
+            }
+        });
     }
 
     onDestroy(unsubscribe);
@@ -128,6 +143,8 @@
                                     <div class="square background-square"></div>
                                 {:else if cell == " "}
                                     <div class="square empty-square"></div>
+                                {:else if cell.length == 3}
+                                    <div class="square revealed">{cell.toUpperCase()[1]}</div>
                                 {:else}
                                     <div class="square filled-square">{cell.toUpperCase()}</div>
                                 {/if}
@@ -144,12 +161,18 @@
                     <input type="text" placeholder="Enter a word..." bind:value={guess} autofocus on:keydown={onKeyDown}>
                     <button class="button" on:click={submitGuess}>Go</button>
                 </div>
+                {#if won}
+                    <div id="game-ended-popup">
+                        <div id="popup-text">You win!</div>
+                    </div>
+                {/if}
             </div>
             <div class="column" id="leaderboard-column">
                 <div class="progress">
                     <div class="indicator" style="width: {placedWords.length / room.words.length * 100}%"/>
                     <div class="label">{room.username}</div>
                 </div>
+                <button class="button" id="give-up" on:click={giveUp}>Give up</button>
             </div>
         </div>
     {:else}
@@ -158,6 +181,11 @@
 </Centered>
 
 <style>
+    #give-up {
+        width: 8rem;
+        margin-top: 2rem;
+    }
+
     #columns {
         display: flex;
         flex-direction: row;
@@ -179,6 +207,69 @@
 
     #game-column {
         flex-grow: 3;
+        position: relative;
+    }
+
+    #game-ended-popup {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #00000055;
+        width: 100%;
+        height: 100vh;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        animation: colorRotateBackground 4s linear 0s infinite;
+    }
+
+    @keyframes colorRotateBackground {
+        from {
+            background: #6666ff55;
+        }
+        10% {
+            background: #0099ff55;
+        }
+        50% {
+            background: #00ff0055;
+        }
+        75% {
+            background: #ff339955;
+        }
+        100% {
+            background: #6666ff55;
+        }
+    }
+
+    #popup-text {
+        padding: 4rem 7rem;
+        background: white;
+        font-size: 3rem;
+        color: unset;
+
+        animation: colorRotate 3s linear 0s infinite;
+    }
+
+    @keyframes colorRotate {
+        from {
+            color: #6666ff;
+        }
+        10% {
+            color: #0099ff;
+        }
+        50% {
+            color: #00ff00;
+        }
+        75% {
+            color: #ff3399;
+        }
+        100% {
+            color: #6666ff;
+        }
     }
 
     #leaderboard-column {
@@ -244,6 +335,24 @@
         align-items: center;
         justify-content: center;
         margin: 0.1rem;
+    }
+
+    .revealed {
+        animation: fade-in-revealed 500ms;
+        background-color: #924452;
+        color: white;
+    }
+
+    @keyframes fade-in-revealed {
+        from {
+            background-color: #bbb;
+            color: black;
+        }
+
+        to {
+            background-color: #924452;
+            color: white;
+        }
     }
 
     .filled-square {

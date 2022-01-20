@@ -259,9 +259,9 @@ class Board:
         for row in self.rows:
             for i in range(len(row)):
                 if i < leftmost_column:
-                    row.pop(i)
+                    row.pop(0)
                 elif i > rightmost_column:
-                    row.pop(i)
+                    row.pop(rightmost_column - leftmost_column)
                             
 
 

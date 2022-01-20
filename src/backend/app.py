@@ -31,7 +31,7 @@ def create_room():
 
     # Optional
     seed = request.args.get("seed")
-    if seed == None:
+    if seed == None or seed == "":
         seed = uuid.uuid4().hex
     
     room_id = None
