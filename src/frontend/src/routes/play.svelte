@@ -44,6 +44,7 @@
     const placeWord = (word: Word, asEmpty: boolean) => {
         if (!asEmpty) {
             placedWords.push(word.word);
+            placedWords = placedWords;
         }
 
         for (var offset = 0; offset < word.word.length; offset++) {
@@ -117,29 +118,39 @@
             <div>Room id: {room.roomId}</div>
             <div>Seed: {room.seed}</div>
         </div>
-        <div id="grid">
-            {#each rows as row}
-                <div class="row">
-                    {#each row as cell}
-                        {#if cell == "."}
-                            <div class="square background-square"></div>
-                        {:else if cell == " "}
-                            <div class="square empty-square"></div>
-                        {:else}
-                            <div class="square filled-square">{cell.toUpperCase()}</div>
-                        {/if}
+        <div id="columns">
+            <div class="column" id="game-column">
+                <div id="grid">
+                    {#each rows as row}
+                        <div class="row">
+                            {#each row as cell}
+                                {#if cell == "."}
+                                    <div class="square background-square"></div>
+                                {:else if cell == " "}
+                                    <div class="square empty-square"></div>
+                                {:else}
+                                    <div class="square filled-square">{cell.toUpperCase()}</div>
+                                {/if}
+                            {/each}
+                        </div>
                     {/each}
                 </div>
-            {/each}
-        </div>
-        <div id="letters">
-            {#each letters as letter}
-                <div class="square letter">{letter.toUpperCase()}</div>
-            {/each}
-        </div>
-        <div id="form">
-            <input type="text" placeholder="Enter a word..." bind:value={guess} autofocus on:keydown={onKeyDown}>
-            <button class="button" on:click={submitGuess}>Go</button>
+                <div id="letters">
+                    {#each letters as letter}
+                        <div class="square letter">{letter.toUpperCase()}</div>
+                    {/each}
+                </div>
+                <div id="form">
+                    <input type="text" placeholder="Enter a word..." bind:value={guess} autofocus on:keydown={onKeyDown}>
+                    <button class="button" on:click={submitGuess}>Go</button>
+                </div>
+            </div>
+            <div class="column" id="leaderboard-column">
+                <div class="progress">
+                    <div class="indicator" style="width: {placedWords.length / room.words.length * 100}%"/>
+                    <div class="label">{room.username}</div>
+                </div>
+            </div>
         </div>
     {:else}
         <div>Loading...</div>
@@ -147,12 +158,69 @@
 </Centered>
 
 <style>
+    #columns {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        width: 100vw;
+        height: 100vh;
+    }
+
+    .column {
+        flex-basis: 0;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    #game-column {
+        flex-grow: 3;
+    }
+
+    #leaderboard-column {
+        flex-grow: 1;
+        height: calc(100% - 2rem);
+        border-left: 2px solid #E18E57;
+        justify-content: flex-start;
+        padding-top: 2rem;
+    }
+
+    .progress {
+        width: calc(100% - 6rem);
+        background: #888888;
+        color: white;
+        text-align: left;
+        position: relative;
+        height: 3.5rem;
+    }
+
+    .indicator {
+        background: blue;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 0;
+    }
+
+    .label {
+        z-index: 1000;
+        position: absolute;
+        top: 50%;
+        left: 1rem;
+        transform: translateY(-50%);
+    }
+
     #grid {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        width: 60vw;
+        width: 75%;
         height: 60vh;
         margin: 0;
         padding: 0;

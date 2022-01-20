@@ -27,6 +27,7 @@
                 isLoading = false;
             } else {
                 let json = await response.json();
+                json["username"] = username;
                 room_store.set(json);
                 goto('/lobby');
             }
