@@ -16,6 +16,8 @@ import { clear_loops } from 'svelte/internal';
 
     var won = false;
 
+    var words: string[] = [];
+
     const shuffleLetters = () => {
         let currentIndex = letters.length, randomIndex;
 
@@ -36,6 +38,8 @@ import { clear_loops } from 'svelte/internal';
                 return
             }
         }
+
+        letters = letters;
     }
 
     const setCell = (x: number, y: number, value: string) => {
@@ -86,6 +90,11 @@ import { clear_loops } from 'svelte/internal';
 
             letters = room.letters;
 
+            words = [];
+            room.words.forEach(word => {
+                words.push(word.word);
+            });
+
             shuffleLetters();
         }
     })
@@ -99,6 +108,25 @@ import { clear_loops } from 'svelte/internal';
             if (word.word == guess) {
                 placeWord(word, false, false);
                 guess = "";
+
+                if ((word == "on" && room.words.includes("no")) || (word == "no" && room.words.includes("on"))) {
+                    placedWords.push(word == "on" ? "no" : "on")
+                    placedWords = placedWords
+                }
+
+                if (words.includes("norm")) {
+                    if (word.word == "on" && placedWords.includes("men") && !placedWords.includes("no")) {
+                        placedWords.push("no");
+                    } else if (word.word == "no" && placedWords.includes("normalised") && !placedWords.includes("on")) {
+                        placedWords.push("on");
+                    } else if (word.word == "men" && placedWords.includes("on") && !placedWords.includes("no")) {
+                        placedWords.push("no");
+                    } else if (word.word == "normalised" && placedWords.includes("no") && !placedWords.includes("on")) {
+                        placedWords.push("on");
+                    }
+                }
+
+                placedWords = placedWords
 
                 if (placedWords.length == room.words.length) {
                     won = true;
@@ -156,6 +184,7 @@ import { clear_loops } from 'svelte/internal';
                     {#each letters as letter}
                         <div class="square letter">{letter.toUpperCase()}</div>
                     {/each}
+                    <div class="square letter" id="shuffle-button" on:click={shuffleLetters}>🔀</div>
                 </div>
                 <div id="form">
                     <input type="text" placeholder="Enter a word..." bind:value={guess} autofocus on:keydown={onKeyDown}>
@@ -181,6 +210,10 @@ import { clear_loops } from 'svelte/internal';
 </Centered>
 
 <style>
+    #shuffle-button {
+        cursor: pointer;
+    }
+
     #give-up {
         width: 8rem;
         margin-top: 2rem;
@@ -376,7 +409,7 @@ import { clear_loops } from 'svelte/internal';
         justify-content: center;
         margin: auto;
         margin-top: 4rem;
-        width: 29.5rem;
+        /* width: 29.5rem; */
     }
 
     .letter {
