@@ -323,7 +323,7 @@ import { clear_loops } from 'svelte/internal';
     }
 
     .indicator {
-        background: blue;
+        background: #1a9fab;
         height: 100%;
         position: absolute;
         left: 0;
