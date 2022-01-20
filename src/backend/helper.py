@@ -24,6 +24,7 @@ def generate_board(seed: str) -> (Board, str):
         board.shrink()
         return board
     else:
+        board = Board(13, 14)
         board.letters = ['n', 'o', 'r', 'm', 'a', 'l', 'i', 's', 'e', 'd']
         board.place_word('normalised', 10, 2, Direction.DOWN)
         board.place_word('side', 5, 3, Direction.ACROSS)
