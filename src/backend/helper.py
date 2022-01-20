@@ -25,8 +25,6 @@ def generate_board(seed: str) -> (Board, str):
         return board
     else:
         board.letters = ['n', 'o', 'r', 'm', 'a', 'l', 'i', 's', 'e', 'd']
-        board.place_word('rose', 8, 0, Direction.DOWN)
-        board.place_word('sin', 8, 2, Direction.ACROSS)
         board.place_word('normalised', 10, 2, Direction.DOWN)
         board.place_word('side', 5, 3, Direction.ACROSS)
         board.place_word('sine', 5, 3, Direction.DOWN)
@@ -40,5 +38,13 @@ def generate_board(seed: str) -> (Board, str):
         board.place_word('candle', 6, 7, Direction.ACROSS)
         board.place_word('normal', 8, 7, Direction.DOWN)
         board.place_word('land', 7, 11, Direction.ACROSS)
+        board.place_word('one', 1, 8, Direction.ACROSS)
+        board.place_word('ear', 10, 10, Direction.ACROSS)
+        board.place_word('red', 12, 10, Direction.DOWN)
+        board.place_word('sir', 6, 9, Direction.ACROSS)
+        board.place_word('mod', 7, 1, Direction.DOWN)
+        board.place_word('men', 7, 1, Direction.ACROSS)
+        board.place_word('no', 9, 1, Direction.DOWN)
+        board.place_word('on', 9, 2, Direction.ACROSS)
         board.shrink()
         return board
