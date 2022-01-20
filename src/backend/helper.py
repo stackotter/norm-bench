@@ -13,25 +13,32 @@ from lib.scraper import get_letters_and_words
 # words = ['foreign', 'finger', 'ignore', 'region', 'grief', 'fine', 'fire', 'grin', 'iron', 'ring', 'ego', 'fog', 'for', 'nor', 'one']
 
 def generate_board(seed: str) -> (Board, str):
-    # words = ['eat', 'era', 'hat', 'tea', 'bare', 'bet', 'bat', 'art', 'beat', 'tree', 'here', 'herb', 'beer', 'bear', 'rate', 'the', 'rat', 'her', 'ear', 'bee', 'earth', 'there', 'tear', 'three', 'heat', 'breathe', 'breath', 'heart', 'hear', 'hate', 'bath', 'bar']
-    words = ['norm', 'normal', 'normalise', 'normalised', 'side', 'lid', 'nail', 'mail', 'male', 'said', 'ram', 'lie', 'die', 'mile', 'sale', 'sail']
+    words = ['eat', 'era', 'hat', 'tea', 'bare', 'bet', 'bat', 'art', 'beat', 'tree', 'here', 'herb', 'beer', 'bear', 'rate', 'the', 'rat', 'her', 'ear', 'bee', 'earth', 'there', 'tear', 'three', 'heat', 'breathe', 'breath', 'heart', 'hear', 'hate', 'bath', 'bar']
 
     board = Board(20, 20)
-    random.seed(seed)
+    if seed != "norm":
+        random.seed(seed)
 
-    first_word = "candle"
-    direction = random.choice([Direction.ACROSS, Direction.DOWN])
-    if direction == Direction.ACROSS:
-        x = int(board.width / 2 - len(first_word) / 2)
-        y = int(board.height / 2)
-        board.place_word(first_word, x, y, direction)
+        board.generate(words)
+        board.letters = ['b', 'r', 'e', 'a', 't', 'h', 'e']
+        board.shrink()
+        return board
     else:
-        x = int(board.width / 2)
-        y = int(board.height / 2 - len(first_word) / 2)
-        board.place_word(first_word, x, y, direction)
-
-    board.generate(words)
-    # board.letters = ['b', 'r', 'e', 'a', 't', 'h', 'e']
-    board.letters = ['n', 'o', 'r', 'm', 'a', 'l', 'i', 's', 'e', 'd']
-    board.shrink()
-    return board
+        board.letters = ['n', 'o', 'r', 'm', 'a', 'l', 'i', 's', 'e', 'd']
+        board.place_word('rose', 8, 0, Direction.DOWN)
+        board.place_word('sin', 8, 2, Direction.ACROSS)
+        board.place_word('normalised', 10, 2, Direction.DOWN)
+        board.place_word('side', 5, 3, Direction.ACROSS)
+        board.place_word('sine', 5, 3, Direction.DOWN)
+        board.place_word('lines', 3, 5, Direction.ACROSS)
+        board.place_word('linear', 3, 5, Direction.DOWN)
+        board.place_word('norm', 1, 10, Direction.ACROSS)
+        board.place_word('nose', 1, 10, Direction.DOWN)
+        board.place_word('learn', 0, 13, Direction.ACROSS)
+        board.place_word('main', 4, 10, Direction.DOWN)
+        board.place_word('sea', 7, 5, Direction.DOWN)
+        board.place_word('candle', 6, 7, Direction.ACROSS)
+        board.place_word('normal', 8, 7, Direction.DOWN)
+        board.place_word('land', 7, 11, Direction.ACROSS)
+        board.shrink()
+        return board
