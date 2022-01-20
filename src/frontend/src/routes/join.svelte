@@ -2,6 +2,7 @@
     import Centered from '$lib/Centered.svelte';
     import { room_store, Room } from '$lib/stores';
     import { goto } from '$app/navigation';
+    import { backendURL } from '$lib/env';
 
     var isLoading = false;
     var error = null;
@@ -16,7 +17,7 @@
 
         isLoading = true;
 
-        fetch('https://backend.stackotter.dev:8081/join_room?' + new URLSearchParams({
+        fetch(`${backendURL}/join_room?` + new URLSearchParams({
             'room_id': roomId.toString(),
             'username': username,
         })).then(async response => {

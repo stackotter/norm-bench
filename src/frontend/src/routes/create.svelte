@@ -3,6 +3,7 @@
 
     import { room_store, Room } from '$lib/stores';
     import { goto } from '$app/navigation';
+    import { backendURL } from '$lib/env';
 
     var isLoading = false;
     var error = null;
@@ -16,7 +17,7 @@
 
         isLoading = true;
 
-        fetch('https://backend.stackotter.dev:8081/create_room?' + new URLSearchParams({
+        fetch(`${backendURL}/create_room?` + new URLSearchParams({
             'username': username,
         })).then(async response => {
             if (response.status != 200) {
