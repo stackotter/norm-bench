@@ -18,6 +18,9 @@ import { clear_loops } from 'svelte/internal';
 
     var words: string[] = [];
 
+    var clock = null;
+    var timeString = "00:00.000";
+
     const shuffleLetters = () => {
         let currentIndex = letters.length, randomIndex;
 
@@ -138,6 +141,10 @@ import { clear_loops } from 'svelte/internal';
     }
 
     const onKeyDown = (event) => {
+        if (clock == null) {
+            startTimer();
+        }
+
         if (event.keyCode === 13) {
             event.preventDefault();
             submitGuess();
@@ -150,6 +157,46 @@ import { clear_loops } from 'svelte/internal';
                 placeWord(word, false, true);
             }
         });
+    }
+
+    const startTimer = () => {
+        clock = 0;
+        let start = Date.now();
+        var timer: NodeJS.Timer;
+        timer = setInterval(() => {
+            clock = Date.now() - start;
+
+            var date = new Date(clock);
+
+            var hours: string | number = date.getUTCHours();
+            var minutes: string | number = date.getUTCMinutes();
+            var seconds: string | number = date.getSeconds();
+            var milliseconds: string | number = date.getMilliseconds();
+            
+            var string = "";
+            
+            if (hours > 0) {
+                if (hours < 10) { hours = "0" + hours }
+                string += hours + ":"
+            }
+
+            if (minutes < 10) { minutes = "0" + minutes }
+            string += minutes + ":"
+
+            if (seconds < 10) { seconds = "0" + seconds }
+            string += seconds + "."
+
+            if (milliseconds < 100) { milliseconds = "0" + milliseconds }
+            if (milliseconds < 10) { milliseconds = "0" + milliseconds }
+            if (milliseconds == 0) { milliseconds = "0" + milliseconds }
+            string += milliseconds
+
+            timeString = string;
+
+            if (won) {
+                clearInterval(timer);
+            }
+        }, 50);
     }
 
     onDestroy(unsubscribe);
@@ -180,6 +227,7 @@ import { clear_loops } from 'svelte/internal';
                         </div>
                     {/each}
                 </div>
+
                 <div id="letters">
                     {#each letters as letter}
                         <div class="square letter">{letter.toUpperCase()}</div>
@@ -190,13 +238,16 @@ import { clear_loops } from 'svelte/internal';
                     <input type="text" placeholder="Enter a word..." bind:value={guess} autofocus on:keydown={onKeyDown}>
                     <button class="button" on:click={submitGuess}>Go</button>
                 </div>
+
                 {#if won}
                     <div id="game-ended-popup">
                         <div id="popup-text">You win!</div>
                     </div>
                 {/if}
             </div>
+
             <div class="column" id="leaderboard-column">
+                <div id="timer">{timeString}</div>
                 <div class="progress">
                     <div class="indicator" style="width: {placedWords.length / room.words.length * 100}%"/>
                     <div class="label">{room.username}</div>
@@ -210,6 +261,12 @@ import { clear_loops } from 'svelte/internal';
 </Centered>
 
 <style>
+    #timer {
+        font-family: monospace;
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
     #shuffle-button {
         cursor: pointer;
     }
