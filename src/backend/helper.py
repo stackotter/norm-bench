@@ -3,24 +3,17 @@ import random
 from typing import Optional
 
 from lib import Board, Direction
-from lib.scraper import get_letters_and_words
+from lib.word_list import WordList
 
-# # Get words from wordbench
-# words = get_letters_and_words()[1]
-# print(words)
-
-# Hardcoded word list
-# words = ['foreign', 'finger', 'ignore', 'region', 'grief', 'fine', 'fire', 'grin', 'iron', 'ring', 'ego', 'fog', 'for', 'nor', 'one']
-
-def generate_board(seed: str) -> (Board, str):
-    words = ['eat', 'era', 'hat', 'tea', 'bare', 'bet', 'bat', 'art', 'beat', 'tree', 'here', 'herb', 'beer', 'bear', 'rate', 'the', 'rat', 'her', 'ear', 'bee', 'earth', 'there', 'tear', 'three', 'heat', 'breathe', 'breath', 'heart', 'hear', 'hate', 'bath', 'bar']
-
+def generate_board(seed: str, word_list: WordList) -> (Board, str):
     board = Board(20, 20)
     if seed != "norm":
         random.seed(seed)
 
+        words = word_list.choose_normbench_words(7)
+        
         board.generate(words)
-        board.letters = ['b', 'r', 'e', 'a', 't', 'h', 'e']
+        board.letters = [char for char in words[0]]
         board.shrink()
         return board
     else:

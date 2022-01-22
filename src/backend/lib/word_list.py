@@ -1,6 +1,7 @@
 import random
 
 from dataclasses import dataclass
+from itertools import combinations
 
 @dataclass
 class WordList:
@@ -46,7 +47,9 @@ class WordList:
         with open(file_name, 'w') as f:
             f.write("\n".join(self.words))
 
-    def choose_normbench_letters(self, letter_count: int, seed: str):
+    def choose_normbench_words(self, letter_count: int) -> list[str]:
+        """Chooses a random 7 letter word and finds all anagrams. Returns a list containing the word and its anagrams. The word is always first in the list"""
+
         offset = ord('a')
         primes: list[int] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101]
 
@@ -54,32 +57,38 @@ class WordList:
             """Calculates the product of a word's letters where each letter has a prime number value. Useful for finding anagrams."""
 
             product = 1
-            for letter in seed_word:
+            for letter in word:
                 prime = primes[ord(letter) - offset]
                 product *= prime
             return product
         
-        print("Finding all n letter words")
         n_letter_words = list(filter(lambda word: len(word) == letter_count, self.words))
-        print("Finding all words smaller than n letters")
         smaller_words = list(filter(lambda word: len(word) < letter_count, self.words))
 
-        print("Choosing a seed word")
         seed_word = random.choice(n_letter_words)
-        print("Finding n letter anagrams of the seed word '%s'" % seed_word)
         seed_word_product = prime_product(seed_word)
 
-        anagrams: list[str] = []
+        anagrams: list[str] = [seed_word]
 
         # Find all n letter anagrams
         for word in n_letter_words:
-            product = 1
-            for letter in word:
-                prime = primes[ord(letter) - offset]
-                product *= prime
+            product = prime_product(word)
             if product == seed_word_product and word != seed_word:
-                print("Found an anagram: %s" % word)
                 anagrams.append(word)
 
-        print(anagrams)
+        # Find all anagrams with less than n letters
+        for word in smaller_words:
+            product = prime_product(word)
+            if len(word) > 3 and (seed_word_product / product).is_integer():
+                anagrams.append(word)
+
+        # Remove either the word or its plural if both appear
+        for word in anagrams:
+            if not word.endswith("s") and word + "s" in anagrams:
+                if random.choice([True, False]):
+                    anagrams.remove(word)
+                else:
+                    anagrams.remove(word + "s")
+        
+        return anagrams
 
