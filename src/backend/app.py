@@ -6,6 +6,7 @@ from flask_cors import CORS
 
 from helper import generate_board
 from lib import Room
+from lib.word_list import WordList
 
 app = Flask(__name__)
 CORS(app)
@@ -16,6 +17,8 @@ free_room_ids: list[int] = []
 next_room_id = 0
 
 rooms: dict[int,Room] = {}
+
+word_list = WordList.from_file("word_lists/norm_bench.txt")
 
 # API routes
 
@@ -42,7 +45,7 @@ def create_room():
         next_room_id += 1
 
     players = [username]
-    board = generate_board(seed)
+    board = generate_board(seed, word_list)
 
     new_room = Room(players, board, seed)
     rooms[room_id] = new_room
