@@ -4,7 +4,6 @@
     import { onDestroy } from 'svelte';
 
     import type { Word } from '$lib/room';
-import { clear_loops } from 'svelte/internal';
 
     var room;
 
@@ -15,6 +14,7 @@ import { clear_loops } from 'svelte/internal';
     var guess = "";
 
     var won = false;
+    var gaveUp = false;
 
     var words: string[] = [];
 
@@ -50,7 +50,7 @@ import { clear_loops } from 'svelte/internal';
     }
 
     const placeWord = (word: Word, asEmpty: boolean, gaveUp: boolean) => {
-        if (!asEmpty) {
+        if (!asEmpty && !gaveUp) {
             placedWords.push(word.word);
             placedWords = placedWords;
         }
@@ -152,6 +152,7 @@ import { clear_loops } from 'svelte/internal';
     }
 
     const giveUp = () => {
+        gaveUp = true;
         room.words.forEach(word => {
             if (!placedWords.includes(word)) {
                 placeWord(word, false, true);
@@ -177,26 +178,25 @@ import { clear_loops } from 'svelte/internal';
             
             if (hours > 0) {
                 if (hours < 10) { hours = "0" + hours }
-                string += hours + ":"
+                string += hours + ":";
             }
 
             if (minutes < 10) { minutes = "0" + minutes }
-            string += minutes + ":"
+            string += minutes + ":";
 
             if (seconds < 10) { seconds = "0" + seconds }
-            string += seconds + "."
+            string += seconds + ".";
 
             if (milliseconds < 100) { milliseconds = "0" + milliseconds }
             if (milliseconds < 10) { milliseconds = "0" + milliseconds }
-            if (milliseconds == 0) { milliseconds = "0" + milliseconds }
             string += milliseconds
 
             timeString = string;
 
-            if (won) {
+            if (won || gaveUp) {
                 clearInterval(timer);
             }
-        }, 50);
+        }, 10);
     }
 
     onDestroy(unsubscribe);
