@@ -1,9 +1,8 @@
 <script lang="ts">
     import Centered from '$lib/Centered.svelte';
 
-    import { room_store } from '$lib/stores';
+    import { room_store, socket } from '$lib/stores';
     import { goto } from '$app/navigation';
-    import { backendURL } from '$lib/env';
 
     var isLoading = false;
     var error = null;
@@ -18,20 +17,21 @@
 
         isLoading = true;
 
-        fetch(`${backendURL}/create_room?` + new URLSearchParams({
+        $socket?.on("room_created", (json) => {
+            json["username"] = username;
+            room_store.set(json);
+            goto('/lobby');
+        });
+
+        $socket?.on("error", (message) => {
+            error = message;
+            isLoading = false;
+        });
+
+        $socket?.emit("create_room", {
             'username': username,
             'seed': seed,
-        })).then(async response => {
-            if (response.status != 200) {
-                error = await response.text();
-                isLoading = false;
-            } else {
-                let json = await response.json();
-                json["username"] = username;
-                room_store.set(json);
-                goto('/lobby');
-            }
-        })
+        });
     }
 </script>
 

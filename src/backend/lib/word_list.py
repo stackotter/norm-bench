@@ -85,7 +85,9 @@ class WordList:
         # Remove either the word or its plural if both appear
         for word in anagrams:
             if not word.endswith("s") and word + "s" in anagrams:
-                if random.choice([True, False]):
+                if word + "s" == seed_word:
+                    anagrams.remove(word)
+                elif random.choice([True, False]):
                     anagrams.remove(word)
                 else:
                     anagrams.remove(word + "s")

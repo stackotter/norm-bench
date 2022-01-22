@@ -1,12 +1,19 @@
 <script lang="ts">
-    import Centered from '$lib/Centered.svelte';
-    import { room_store, Room } from '$lib/stores';
     import { onDestroy } from 'svelte';
+    import { room_store, socket } from '$lib/stores';
+
+    import Centered from '$lib/Centered.svelte';
 
     var room;
 
     const unsubscribe = room_store.subscribe(value => {
         room = value;
+    })
+
+    $socket?.on("new_player", (username) => {
+        room.players.push(username);
+        room.players = room.players;
+        room_store.set(room);
     })
 
     onDestroy(unsubscribe);

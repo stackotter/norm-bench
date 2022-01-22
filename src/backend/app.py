@@ -1,15 +1,21 @@
+import json
 import uuid
+import os
 
 from flask import Flask, request, jsonify
 from dataclasses import dataclass
 from flask_cors import CORS
+from flask_socketio import SocketIO, send, emit, join_room, leave_room
 
 from helper import generate_board
 from lib import Room
 from lib.word_list import WordList
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = uuid.uuid4().hex
 CORS(app)
+
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Global state (don't @ me)
 
@@ -22,20 +28,25 @@ word_list = WordList.from_file("word_lists/norm_bench.txt")
 
 # API routes
 
-@app.route("/create_room")
-def create_room():
+@socketio.on("create_room")
+def create_room_handler(data):
     global free_room_ids
     global next_room_id
     global rooms
 
-    username = request.args.get("username")
+    if not "username" in data.keys():
+        emit("error", "Please supply all fields")
+        return
+
+    username = data["username"]
     if username == None:
-        return "Please provide a username", 400
+        emit("error", "Please provide a username")
+        return
 
     # Optional
-    seed = request.args.get("seed")
-    if seed == None or seed == "":
-        seed = uuid.uuid4().hex
+    seed = uuid.uuid4().hex
+    if "seed" in data.keys():
+        seed = data["seed"]
     
     room_id = None
     if len(free_room_ids) != 0:
@@ -50,7 +61,9 @@ def create_room():
     new_room = Room(players, board, seed)
     rooms[room_id] = new_room
 
-    return jsonify({
+    join_room("%d" % room_id)
+
+    emit("room_created", {
         "roomId": room_id,
         "width": board.width,
         "height": board.height,
@@ -65,32 +78,42 @@ def create_room():
         "seed": seed
     })
 
-@app.route("/join_room")
-def join_room():
+@socketio.on("join_room")
+def join_room_handler(data):
     global rooms
 
-    username = request.args.get("username")
-    room_id = request.args.get("room_id")
+    if not "username" in data.keys() or not "room_id" in data.keys():
+        emit("error", "Please supply all fields")
+        return
+
+    username = data["username"]
+    room_id = data["room_id"]
     
     if username == None or username == "":
-        return "Please provide a username", 400
-    if room_id == None or not room_id.isdigit():
-        return "Please provide a valid room id", 400
-
-    room_id = int(room_id)
+        emit("error", "Please provide a username")
+        return
+    if not isinstance(room_id, int):
+        emit("error", "Please provide a valid room id")
+        return
 
     if not room_id in rooms.keys():
-        return "Invalid room id (room doesn't exist)", 400
+        emit("error", "Invalid room id (room doesn't exist)")
+        return
 
     room = rooms[room_id]
 
     if username in room.players:
-        return "Username is already taken", 400
+        emit("error", "Username is already taken")
+        return
 
     room.players.append(username)
     rooms[room_id] = room
 
-    return jsonify({
+    socketio.emit("new_player", username, to="%d" % room_id)
+
+    join_room("%d" % room_id)
+
+    emit("joined_room", {
         "roomId": room_id,
         "width": room.board.width,
         "height": room.board.height,
@@ -101,8 +124,9 @@ def join_room():
             "word": word[3]
         } for word in room.board.words],
         "players": room.players,
+        "letters": room.board.letters,
         "seed": room.seed
     })
 
 if __name__ == "__main__":
-    app.run("0.0.0.0", port=8081)
+    socketio.run(app, "0.0.0.0", port=int(os.getenv("BACKEND_PORT", "8080")), debug=True)
