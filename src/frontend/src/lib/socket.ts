@@ -59,6 +59,14 @@ export const createSocket = () => {
         });
     });
 
+    socket.on("game_won", data => {
+        if (!isInRoom()) { return }
+        room_store.update(room => {
+            room.winner = data.winner;
+            return room
+        })
+    })
+
     socket.on("joined_room", joinRoom);
 
     socket.on("room_created", joinRoom);

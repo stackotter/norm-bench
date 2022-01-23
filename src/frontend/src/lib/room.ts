@@ -22,6 +22,7 @@ export type Room = {
     letters: string[],
     seed: string,
     hasStarted: boolean,
+    winner?: string,
 };
 
 export const shuffleLetters = () => {

@@ -142,7 +142,7 @@ def join_room_handler(data):
         "seed": room.seed
     })
 
-# TODO: The below function is incredibly badly written
+# TODO: Use session storage instead of relying on the user to tell the truth
 
 @socketio.on("update_progress")
 def update_progress_handler(data):
@@ -160,6 +160,11 @@ def update_progress_handler(data):
         "username": username,
         "progress": progress
     }, to="%d" % room_id)
+
+    if progress == len(rooms[room_id].board.words):
+        emit("game_won", {
+            "winner": username
+        }, to="%d" % room_id)
 
 @socketio.on("start_game")
 def start_game_handler(data):

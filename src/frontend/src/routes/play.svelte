@@ -1,6 +1,6 @@
 <script lang="ts">
     import Centered from '$lib/Centered.svelte';
-    import { room_store } from '$lib/stores';
+    import { room_store, socket } from '$lib/stores';
     import { onDestroy } from 'svelte';
 
     import { shuffleLetters } from '$lib/room';
@@ -45,7 +45,6 @@
         for (const word of room.words) {
             if (word.word == guess) {
                 grid.placeWord(word, false, false);
-                emitProgressUpdate(grid.placedWords.length, room.username, room.roomId);
                 grid = grid;
 
                 guess = "";
@@ -61,9 +60,14 @@
                         grid.placedWords.push("on");
                     }
                 }
+                
+                emitProgressUpdate(grid.placedWords.length, room.username, room.roomId);
 
                 if (grid.placedWords.length == room.words.length) {
-                    won = true;
+                    room_store.update(room => {
+                        room.winner = room.username;
+                        return room
+                    })
                 }
 
                 return
@@ -76,7 +80,7 @@
             hasStartedTimer = true;
             const timer = startTimer((time) => {
                 timeString = time;
-                if (won || gaveUp) {
+                if (room.winner || gaveUp) {
                     clearInterval(timer);
                 }
             });
@@ -101,10 +105,6 @@
 
 <Centered>
     {#if room && grid}
-        <div id="room-info">
-            <div>Room id: {room.roomId}</div>
-            <div>Seed: {room.seed}</div>
-        </div>
         <div id="columns">
             <div class="column" id="game-column">
                 <div id="grid">
@@ -136,9 +136,9 @@
                     <button class="button" on:click={submitGuess}>Go</button>
                 </div>
 
-                {#if won}
+                {#if room.winner}
                     <div id="game-ended-popup">
-                        <div id="popup-text">You win!</div>
+                        <div id="popup-text">{room.winner == room.username ? "You win!" : `${room.winner} won!`}</div>
                     </div>
                 {/if}
             </div>
@@ -153,6 +153,11 @@
                 {/each}
                 <button class="button" id="give-up" on:click={giveUp}>Give up</button>
             </div>
+        </div>
+
+        <div id="room-info">
+            <div>Room id: {room.roomId}</div>
+            <div>Seed: {room.seed}</div>
         </div>
     {:else}
         <div>Loading...</div>
