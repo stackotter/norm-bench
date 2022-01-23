@@ -26,7 +26,7 @@
         <div id="player-list">
             <h3>Players:</h3>
             {#each room.players as player}
-                <div>{player}</div>
+                <div>{player.username}</div>
             {/each}
         </div>
         <a href="/play" class="button">Start</a>

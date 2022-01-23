@@ -2,7 +2,12 @@ from .board import Board
 from dataclasses import dataclass
 
 @dataclass
+class Player:
+    username: str
+    progress: int
+
+@dataclass
 class Room:
-    players: list[str]
+    players: list[Player]
     board: Board
     seed: str

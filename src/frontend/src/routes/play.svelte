@@ -1,6 +1,6 @@
 <script lang="ts">
     import Centered from '$lib/Centered.svelte';
-    import { room_store } from '$lib/stores';
+    import { room_store, socket } from '$lib/stores';
     import { onDestroy } from 'svelte';
 
     import type { Word } from '$lib/room';
@@ -53,6 +53,12 @@
         if (!asEmpty && !gaveUp) {
             placedWords.push(word.word);
             placedWords = placedWords;
+            
+            $socket?.emit("update_progress", {
+                "username": room.username,
+                "room_id": room.roomId,
+                "progress": placedWords.length
+            });
         }
 
         for (var offset = 0; offset < word.word.length; offset++) {
@@ -200,6 +206,23 @@
     }
 
     onDestroy(unsubscribe);
+
+    // Socket stuff
+
+    $socket?.on("new_player", player => {
+        room.players.push(player);
+        room.players = room.players;
+        room_store.set(room);
+    });
+
+    $socket?.on("progress_update", updated_player => {
+        for (var i = 0; i < room.players.length; i++) {
+            var player = room.players[i]
+            if (player.username == updated_player.username) {
+                room.players[i].progress = updated_player.progress;
+            }
+        }
+    })
 </script>
 
 <Centered>
@@ -248,10 +271,12 @@
 
             <div class="column" id="leaderboard-column">
                 <div id="timer">{timeString}</div>
-                <div class="progress">
-                    <div class="indicator" style="width: {placedWords.length / room.words.length * 100}%"/>
-                    <div class="label">{room.username}</div>
-                </div>
+                {#each room.players as player}
+                    <div class="progress">
+                        <div class="indicator" style="width: {player.progress / room.words.length * 100}%"/>
+                        <div class="label">{player.username}</div>
+                    </div>
+                {/each}
                 <button class="button" id="give-up" on:click={giveUp}>Give up</button>
             </div>
         </div>
@@ -273,7 +298,7 @@
 
     #give-up {
         width: 8rem;
-        margin-top: 2rem;
+        margin-top: 1rem;
     }
 
     #columns {
@@ -377,6 +402,7 @@
         text-align: left;
         position: relative;
         height: 3.5rem;
+        margin-bottom: 1rem;
     }
 
     .indicator {

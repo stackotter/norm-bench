@@ -10,6 +10,7 @@ from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from helper import generate_board
 from lib import Room
 from lib.word_list import WordList
+from lib.room import Player
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = uuid.uuid4().hex
@@ -45,7 +46,7 @@ def create_room_handler(data):
 
     # Optional
     seed = uuid.uuid4().hex
-    if "seed" in data.keys():
+    if "seed" in data.keys() and data["seed"] != "":
         seed = data["seed"]
     
     room_id = None
@@ -55,7 +56,7 @@ def create_room_handler(data):
         room_id = next_room_id
         next_room_id += 1
 
-    players = [username]
+    players = [Player(username, 0)]
     board = generate_board(seed, word_list)
 
     new_room = Room(players, board, seed)
@@ -73,7 +74,10 @@ def create_room_handler(data):
             "direction": word[2].value,
             "word": word[3]
         } for word in board.words],
-        "players": players,
+        "players": [{
+            "username": player.username,
+            "progress": player.progress
+        } for player in players],
         "letters": board.letters,
         "seed": seed
     })
@@ -106,10 +110,13 @@ def join_room_handler(data):
         emit("error", "Username is already taken")
         return
 
-    room.players.append(username)
+    room.players.append(Player(username, 0))
     rooms[room_id] = room
 
-    socketio.emit("new_player", username, to="%d" % room_id)
+    socketio.emit("new_player", {
+        "username": username,
+        "progress": 0
+    }, to="%d" % room_id)
 
     join_room("%d" % room_id)
 
@@ -123,10 +130,32 @@ def join_room_handler(data):
             "direction": word[2].value,
             "word": word[3]
         } for word in room.board.words],
-        "players": room.players,
+        "players": [{
+            "username": player.username,
+            "progress": player.progress
+        } for player in room.players],
         "letters": room.board.letters,
         "seed": room.seed
     })
+
+# TODO: The below function is incredibly badly written
+
+@socketio.on("update_progress")
+def update_progress_handler(data):
+    global rooms
+
+    room_id = data["room_id"]
+    username = data["username"]
+    progress = data["progress"]
+
+    for (i, player) in enumerate(rooms[room_id].players):
+        if player.username == username:
+            rooms[room_id].players[i].progress = progress
+
+    emit("progress_update", {
+        "username": player.username,
+        "progress": player.progress
+    }, to="%d" % room_id)
 
 if __name__ == "__main__":
     socketio.run(app, "0.0.0.0", port=int(os.getenv("BACKEND_PORT", "8080")), debug=True)

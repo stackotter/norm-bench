@@ -5,9 +5,14 @@ export type Word = {
     word: string,
 }
 
+export type Player = {
+    username: string,
+    progress: number,
+}
+
 export type Room = {
     username: string,
-    players: string[],
+    players: Player[],
     roomId: number,
     words: Word[],
     width: number,
