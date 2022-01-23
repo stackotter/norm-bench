@@ -108,7 +108,7 @@ def join_room_handler(data):
 
     room = rooms[room_id]
 
-    if username in room.players:
+    if username in map(lambda player: player.username, room.players):
         emit("error", "Username is already taken")
         return
 
