@@ -24,16 +24,15 @@ const joinRoom = json => {
 export const createSocket = () => {
     var socket = io(backendURL);
 
-    socket.on("new_player", (username) => {
+    socket.on("new_player", player => {
         if (!isInRoom()) { return }
         room_store.update(room => {
-            room.players.push(username);
+            room.players.push(player);
             return room
         });
     });
 
     socket.on("progress_update", updated_player => {
-        console.log("Received progress update")
         if (!isInRoom()) { return }
         room_store.update(room => {
             for (var i = 0; i < room.players.length; i++) {
@@ -43,7 +42,6 @@ export const createSocket = () => {
                 }
             }
 
-            console.log("Sorting players")
             room.players.sort((firstPlayer, secondPlayer) => { return firstPlayer.progress > secondPlayer.progress ? -1 : 1 });
 
             return room

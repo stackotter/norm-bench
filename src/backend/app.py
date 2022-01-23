@@ -157,8 +157,8 @@ def update_progress_handler(data):
             rooms[room_id].players[i].progress = progress
 
     emit("progress_update", {
-        "username": player.username,
-        "progress": player.progress
+        "username": username,
+        "progress": progress
     }, to="%d" % room_id)
 
 @socketio.on("start_game")
