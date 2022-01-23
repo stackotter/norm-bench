@@ -1,8 +1,6 @@
 <script lang="ts">
     import Centered from '$lib/Centered.svelte';
-
-    import { room_store, socket } from '$lib/stores';
-    import { goto } from '$app/navigation';
+    import { socket } from '$lib/stores';
 
     var isLoading = false;
     var error = null;

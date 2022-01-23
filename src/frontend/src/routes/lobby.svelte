@@ -3,8 +3,15 @@
 
     import Centered from '$lib/Centered.svelte';
     import { goto } from '$app/navigation';
+    import { onDestroy } from 'svelte';
 
-    var room = $room_store
+    var room;
+
+    const unsubscribe = room_store.subscribe(value => {
+        room = value;
+    });
+
+    onDestroy(unsubscribe);
 
     const play = () => {
         room_store.update(room => {
@@ -21,7 +28,7 @@
 </script>
 
 <Centered>
-    {#if room != null && room != undefined}
+    {#if room}
         <h2>Waiting for more players...</h2>
         <div id="room-id">Room id: {room.roomId}</div>
         <div id="player-list">

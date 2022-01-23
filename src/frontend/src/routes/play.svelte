@@ -45,8 +45,8 @@
         for (const word of room.words) {
             if (word.word == guess) {
                 grid.placeWord(word, false, false);
-                grid = grid;
                 emitProgressUpdate(grid.placedWords.length, room.username, room.roomId);
+                grid = grid;
 
                 guess = "";
 
