@@ -176,4 +176,4 @@ def start_game_handler(data):
     emit("start_game", {}, to="%d" % room_id)
 
 if __name__ == "__main__":
-    socketio.run(app, "0.0.0.0", port=int(os.getenv("BACKEND_PORT", "8080")), debug=True)
+    socketio.run(app, "0.0.0.0", port=int(os.getenv("BACKEND_PORT", "8080")), debug=True, keyfile=os.getenv("BACKEND_KEYFILE", None), certfile=os.getenc("BACKEND_CERTFILE", None))
