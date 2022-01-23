@@ -216,18 +216,17 @@ class Board:
         rightmost_column = None
         first_row_index = None
         removed_row_count = 0
-        for (i, row) in enumerate(self.rows):
+        for (i, row) in reversed(list(enumerate(self.rows))):
             contains_letter = False
             for cell in row:
                 if cell != " ":
                     contains_letter = True
                     break
             if not contains_letter:
-                self.rows.pop(i - removed_row_count)
+                self.rows.pop(i)
                 removed_row_count += 1
             else:
-                if first_row_index == None:
-                    first_row_index = i
+                first_row_index = i # because we're iterating backwards this will leave us with the index of the first row
                 has_found_first_column = False
                 for (i, cell) in enumerate(row):
                     if cell != " ":
@@ -257,11 +256,10 @@ class Board:
 
         # Remove empty columns
         for row in self.rows:
-            for i in range(len(row)):
-                if i < leftmost_column:
-                    row.pop(0)
-                elif i > rightmost_column:
-                    row.pop(rightmost_column - leftmost_column)
+            for i in range(leftmost_column):
+                row.pop(0)
+            for i in range(self.width - rightmost_column):
+                row.pop()
                             
 
 

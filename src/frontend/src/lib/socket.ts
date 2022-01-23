@@ -37,11 +37,13 @@ export const createSocket = () => {
         if (!isInRoom()) { return }
         room_store.update(room => {
             for (var i = 0; i < room.players.length; i++) {
-                var player = room.players[i];
-                if (player.username == updated_player.username) {
+                if (room.players[i].username == updated_player.username) {
                     room.players[i].progress = updated_player.progress;
                 }
             }
+
+            room.players.sort((firstPlayer, secondPlayer) => { return firstPlayer.progress > secondPlayer.progress ? -1 : 1 });
+
             return room
         })
     });
