@@ -59,15 +59,17 @@ def create_room_handler(data):
     players = [Player(username, 0)]
     board = generate_board(seed, word_list)
 
-    new_room = Room(players, board, seed)
+    new_room = Room(players, board, seed, False)
     rooms[room_id] = new_room
 
     join_room("%d" % room_id)
 
     emit("room_created", {
         "roomId": room_id,
+        "username": username,
         "width": board.width,
         "height": board.height,
+        "hasStarted": new_room.has_started,
         "words": [{
             "x": word[0],
             "y": word[1],
@@ -122,8 +124,10 @@ def join_room_handler(data):
 
     emit("joined_room", {
         "roomId": room_id,
+        "username": username,
         "width": room.board.width,
         "height": room.board.height,
+        "hasStarted": room.has_started,
         "words": [{
             "x": word[0],
             "y": word[1],
@@ -156,6 +160,15 @@ def update_progress_handler(data):
         "username": player.username,
         "progress": player.progress
     }, to="%d" % room_id)
+
+@socketio.on("start_game")
+def start_game_handler(data):
+    global rooms
+
+    room_id = data["room_id"]
+    rooms[room_id].has_started = True
+
+    emit("start_game", {}, to="%d" % room_id)
 
 if __name__ == "__main__":
     socketio.run(app, "0.0.0.0", port=int(os.getenv("BACKEND_PORT", "8080")), debug=True)

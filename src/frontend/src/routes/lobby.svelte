@@ -1,22 +1,23 @@
 <script lang="ts">
-    import { onDestroy } from 'svelte';
     import { room_store, socket } from '$lib/stores';
 
     import Centered from '$lib/Centered.svelte';
+    import { goto } from '$app/navigation';
 
-    var room;
+    var room = $room_store
 
-    const unsubscribe = room_store.subscribe(value => {
-        room = value;
-    })
+    const play = () => {
+        room_store.update(room => {
+            room.hasStarted = true;
+            return room
+        });
 
-    $socket?.on("new_player", (username) => {
-        room.players.push(username);
-        room.players = room.players;
-        room_store.set(room);
-    })
+        $socket?.emit("start_game", {
+            "room_id": room.roomId
+        });
 
-    onDestroy(unsubscribe);
+        goto("/play");
+    }
 </script>
 
 <Centered>
@@ -29,7 +30,7 @@
                 <div>{player.username}</div>
             {/each}
         </div>
-        <a href="/play" class="button">Start</a>
+        <button class="button" on:click={play}>Start</button>
     {:else}
         <div>Loading...</div>
     {/if}

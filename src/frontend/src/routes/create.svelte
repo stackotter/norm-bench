@@ -17,12 +17,6 @@
 
         isLoading = true;
 
-        $socket?.on("room_created", (json) => {
-            json["username"] = username;
-            room_store.set(json);
-            goto('/lobby');
-        });
-
         $socket?.on("error", (message) => {
             error = message;
             isLoading = false;

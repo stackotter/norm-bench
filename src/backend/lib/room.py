@@ -11,3 +11,4 @@ class Room:
     players: list[Player]
     board: Board
     seed: str
+    has_started: bool

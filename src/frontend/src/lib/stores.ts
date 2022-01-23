@@ -1,8 +1,7 @@
 import { writable } from 'svelte/store';
 import type { Room } from './room';
-import io from 'socket.io-client';
-import { backendURL } from '$lib/env';
+import { createSocket } from './socket';
 
-export const socket = writable(io(backendURL));
+export const socket = writable(createSocket());
 
 export const room_store: import('svelte/store').Writable<Room | null> = writable(null);

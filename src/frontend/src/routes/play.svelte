@@ -1,143 +1,68 @@
 <script lang="ts">
     import Centered from '$lib/Centered.svelte';
-    import { room_store, socket } from '$lib/stores';
+    import { room_store } from '$lib/stores';
     import { onDestroy } from 'svelte';
 
-    import type { Word } from '$lib/room';
+    import { shuffleLetters } from '$lib/room';
+    import { startTimer } from '$lib/timer';
+    import { Grid } from '$lib/grid';
+    import { emitProgressUpdate } from '$lib/socket';
+
+    // Game state
 
     var room;
-
-    var rows: string[][];
-    var letters: string[];
-    var placedWords: string[] = [];
-
-    var guess = "";
+    var grid;
 
     var won = false;
     var gaveUp = false;
 
-    var words: string[] = [];
+    // Timer
 
-    var clock = null;
-    var timeString = "00:00.000";
+    var hasStartedTimer = false;
+    var timeString = null;
 
-    const shuffleLetters = () => {
-        let currentIndex = letters.length, randomIndex;
+    // Inputs
 
-        while (currentIndex != 0) {
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex--;
+    var guess = "";
 
-            [letters[currentIndex], letters[randomIndex]] = [
-            letters[randomIndex], letters[currentIndex]];
-        }
-
-        // Make sure that we don't show them the 7 letter word.
-        // TODO: optimise, at the moment it just checks every word (whereas it only needs to check the 7 letter words).
-        let shownWord = letters.join();
-        for (const word of room.words) {
-            if (shownWord == word) {
-                shuffleLetters()
-                return
-            }
-        }
-
-        letters = letters;
-    }
-
-    const setCell = (x: number, y: number, value: string) => {
-        rows[y][x] = value;
-    }
-
-    const placeWord = (word: Word, asEmpty: boolean, gaveUp: boolean) => {
-        if (!asEmpty && !gaveUp) {
-            placedWords.push(word.word);
-            placedWords = placedWords;
-            
-            $socket?.emit("update_progress", {
-                "username": room.username,
-                "room_id": room.roomId,
-                "progress": placedWords.length
-            });
-        }
-
-        for (var offset = 0; offset < word.word.length; offset++) {
-            if (word.direction == "down") {
-                var y = word.y + offset;
-                if (gaveUp && rows[y][word.x] != " ") {
-                    continue
-                }
-                setCell(word.x, y, asEmpty ? " " : (gaveUp ? `|${word.word[offset]}|` : word.word[offset]));
-            } else {
-                var x = word.x + offset;
-                if (gaveUp && rows[word.y][x] != " ") {
-                    continue
-                }
-                setCell(x, word.y, asEmpty ? " " : (gaveUp ? `|${word.word[offset]}|` : word.word[offset]));
-            }
-        }
-    }
+    // Handlers
 
     const unsubscribe = room_store.subscribe(value => {
-        room = value;
-
-        if (room != null && room != undefined) {
-            rows = [];
-            for (var y = 0; y < room.height; y++) {
-                var row = []
-                for (var x = 0; x < room.width; x++) {
-                    row.push('.'); // '.' means a square where no words go
-                }
-                rows.push(row);
-            }
-
-            room.words.forEach(word => {
-                placeWord(word, true, false);
-            });
-
-            console.log(`${room.width}x${room.height}`);
-
-            letters = room.letters;
-
-            words = [];
-            room.words.forEach(word => {
-                words.push(word.word);
-            });
-
+        if (!room) {
+            grid = new Grid(value);
             shuffleLetters();
         }
-    })
+        room = value;
+    });
+
+    onDestroy(unsubscribe);
 
     const submitGuess = () => {
-        if (placedWords.includes(guess)) {
+        if (grid.placedWords.includes(guess)) {
             return
         }
 
         for (const word of room.words) {
             if (word.word == guess) {
-                placeWord(word, false, false);
+                grid.placeWord(word, false, false);
+                grid = grid;
+                emitProgressUpdate(grid.placedWords.length, room.username, room.roomId);
+
                 guess = "";
 
-                if ((word == "on" && room.words.includes("no")) || (word == "no" && room.words.includes("on"))) {
-                    placedWords.push(word == "on" ? "no" : "on")
-                    placedWords = placedWords
-                }
-
-                if (words.includes("norm")) {
-                    if (word.word == "on" && placedWords.includes("men") && !placedWords.includes("no")) {
-                        placedWords.push("no");
-                    } else if (word.word == "no" && placedWords.includes("normalised") && !placedWords.includes("on")) {
-                        placedWords.push("on");
-                    } else if (word.word == "men" && placedWords.includes("on") && !placedWords.includes("no")) {
-                        placedWords.push("no");
-                    } else if (word.word == "normalised" && placedWords.includes("no") && !placedWords.includes("on")) {
-                        placedWords.push("on");
+                if (room.seed == "norm") {
+                    if (word.word == "on" && grid.placedWords.includes("men") && !grid.placedWords.includes("no")) {
+                        grid.placedWords.push("no");
+                    } else if (word.word == "no" && grid.placedWords.includes("normalised") && !grid.placedWords.includes("on")) {
+                        grid.placedWords.push("on");
+                    } else if (word.word == "men" && grid.placedWords.includes("on") && !grid.placedWords.includes("no")) {
+                        grid.placedWords.push("no");
+                    } else if (word.word == "normalised" && grid.placedWords.includes("no") && !grid.placedWords.includes("on")) {
+                        grid.placedWords.push("on");
                     }
                 }
 
-                placedWords = placedWords
-
-                if (placedWords.length == room.words.length) {
+                if (grid.placedWords.length == room.words.length) {
                     won = true;
                 }
 
@@ -147,8 +72,14 @@
     }
 
     const onKeyDown = (event) => {
-        if (clock == null) {
-            startTimer();
+        if (!hasStartedTimer) {
+            hasStartedTimer = true;
+            const timer = startTimer((time) => {
+                timeString = time;
+                if (won || gaveUp) {
+                    clearInterval(timer);
+                }
+            });
         }
 
         if (event.keyCode === 13) {
@@ -160,73 +91,16 @@
     const giveUp = () => {
         gaveUp = true;
         room.words.forEach(word => {
-            if (!placedWords.includes(word)) {
-                placeWord(word, false, true);
+            if (!grid.placedWords.includes(word.word)) {
+                grid.placeWord(word, false, true);
             }
         });
+        grid = grid;
     }
-
-    const startTimer = () => {
-        clock = 0;
-        let start = Date.now();
-        var timer: NodeJS.Timer;
-        timer = setInterval(() => {
-            clock = Date.now() - start;
-
-            var date = new Date(clock);
-
-            var hours: string | number = date.getUTCHours();
-            var minutes: string | number = date.getUTCMinutes();
-            var seconds: string | number = date.getSeconds();
-            var milliseconds: string | number = date.getMilliseconds();
-            
-            var string = "";
-            
-            if (hours > 0) {
-                if (hours < 10) { hours = "0" + hours }
-                string += hours + ":";
-            }
-
-            if (minutes < 10) { minutes = "0" + minutes }
-            string += minutes + ":";
-
-            if (seconds < 10) { seconds = "0" + seconds }
-            string += seconds + ".";
-
-            if (milliseconds < 100) { milliseconds = "0" + milliseconds }
-            if (milliseconds < 10) { milliseconds = "0" + milliseconds }
-            string += milliseconds
-
-            timeString = string;
-
-            if (won || gaveUp) {
-                clearInterval(timer);
-            }
-        }, 10);
-    }
-
-    onDestroy(unsubscribe);
-
-    // Socket stuff
-
-    $socket?.on("new_player", player => {
-        room.players.push(player);
-        room.players = room.players;
-        room_store.set(room);
-    });
-
-    $socket?.on("progress_update", updated_player => {
-        for (var i = 0; i < room.players.length; i++) {
-            var player = room.players[i]
-            if (player.username == updated_player.username) {
-                room.players[i].progress = updated_player.progress;
-            }
-        }
-    })
 </script>
 
 <Centered>
-    {#if room != null && room != undefined}
+    {#if room && grid}
         <div id="room-info">
             <div>Room id: {room.roomId}</div>
             <div>Seed: {room.seed}</div>
@@ -234,7 +108,7 @@
         <div id="columns">
             <div class="column" id="game-column">
                 <div id="grid">
-                    {#each rows as row}
+                    {#each grid.rows as row}
                         <div class="row">
                             {#each row as cell}
                                 {#if cell == "."}
@@ -252,7 +126,7 @@
                 </div>
 
                 <div id="letters">
-                    {#each letters as letter}
+                    {#each room.letters as letter}
                         <div class="square letter">{letter.toUpperCase()}</div>
                     {/each}
                     <div class="square letter" id="shuffle-button" on:click={shuffleLetters}>🔀</div>
@@ -270,7 +144,7 @@
             </div>
 
             <div class="column" id="leaderboard-column">
-                <div id="timer">{timeString}</div>
+                <div id="timer">{timeString || "00:00.000"}</div>
                 {#each room.players as player}
                     <div class="progress">
                         <div class="indicator" style="width: {player.progress / room.words.length * 100}%"/>
