@@ -17,6 +17,7 @@ def generate_board(seed: str, word_list: WordList) -> (Board, str):
         board.shrink()
         return board
     else:
+        # An easter egg board for norm
         board = Board(13, 14)
         board.letters = ['n', 'o', 'r', 'm', 'a', 'l', 'i', 's', 'e', 'd']
         board.place_word('normalised', 10, 2, Direction.DOWN)

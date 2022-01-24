@@ -79,7 +79,7 @@ class WordList:
         # Find all anagrams with less than n letters
         for word in smaller_words:
             product = prime_product(word)
-            if len(word) > 3 and (seed_word_product / product).is_integer():
+            if len(word) >= 3 and (seed_word_product / product).is_integer():
                 anagrams.append(word)
 
         # Remove either the word or its plural if both appear

@@ -13,8 +13,8 @@
     var room;
     var grid;
 
-    var won = false;
     var gaveUp = false;
+    var popupDismissed = false;
 
     // Timer
 
@@ -101,6 +101,13 @@
         });
         grid = grid;
     }
+
+    const nextGame = () => {
+        $socket?.emit("join_next_room", {
+            "room_id": room.roomId,
+            "username": room.username,
+        });
+    }
 </script>
 
 <Centered>
@@ -135,12 +142,6 @@
                     <input type="text" placeholder="Enter a word..." bind:value={guess} autofocus on:keydown={onKeyDown}>
                     <button class="button" on:click={submitGuess}>Go</button>
                 </div>
-
-                {#if room.winner}
-                    <div id="game-ended-popup">
-                        <div id="popup-text">{room.winner == room.username ? "You win!" : `${room.winner} won!`}</div>
-                    </div>
-                {/if}
             </div>
 
             <div class="column" id="leaderboard-column">
@@ -151,9 +152,23 @@
                         <div class="label">{player.username}</div>
                     </div>
                 {/each}
-                <button class="button" id="give-up" on:click={giveUp}>Give up</button>
+
+                <button class="button" id="give-up" on:click={(gaveUp || room.winner) ? nextGame : giveUp}>
+                    {(gaveUp || room.winner) ? "Next" : "Give up"}
+                </button>
             </div>
         </div>
+
+        {#if room.winner && !popupDismissed}
+            <div id="game-ended-popup" on:click={() => {popupDismissed = true}}>
+                <div id="popup-text" on:click|stopPropagation={() => {return}}>
+                    {room.winner == room.username ? "You win!" : `${room.winner} won!`}
+                    <button class="button" id="next-button" on:click={nextGame}>
+                        Next
+                    </button>
+                </div>
+            </div>
+        {/if}
 
         <div id="room-info">
             <div>Room id: {room.roomId}</div>
@@ -177,6 +192,12 @@
 
     #give-up {
         width: 8rem;
+        margin-top: 1rem;
+    }
+
+    #next-button {
+        width: 8rem;
+        margin: auto;
         margin-top: 1rem;
     }
 
@@ -217,26 +238,6 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-
-        animation: colorRotateBackground 4s linear 0s infinite;
-    }
-
-    @keyframes colorRotateBackground {
-        from {
-            background: #6666ff55;
-        }
-        10% {
-            background: #0099ff55;
-        }
-        50% {
-            background: #00ff0055;
-        }
-        75% {
-            background: #ff339955;
-        }
-        100% {
-            background: #6666ff55;
-        }
     }
 
     #popup-text {
@@ -244,26 +245,6 @@
         background: white;
         font-size: 3rem;
         color: unset;
-
-        animation: colorRotate 3s linear 0s infinite;
-    }
-
-    @keyframes colorRotate {
-        from {
-            color: #6666ff;
-        }
-        10% {
-            color: #0099ff;
-        }
-        50% {
-            color: #00ff00;
-        }
-        75% {
-            color: #ff3399;
-        }
-        100% {
-            color: #6666ff;
-        }
     }
 
     #leaderboard-column {
@@ -294,7 +275,6 @@
     }
 
     .label {
-        z-index: 1000;
         position: absolute;
         top: 50%;
         left: 1rem;

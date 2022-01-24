@@ -27,6 +27,20 @@ rooms: dict[int,Room] = {}
 
 word_list = WordList.from_file("word_lists/norm_bench.txt")
 
+# Helper
+
+def get_next_room_id() -> int:
+    global free_room_ids
+    global next_room_id
+
+    room_id = None
+    if len(free_room_ids) != 0:
+        room_id = free_room_ids.pop()
+    else:
+        room_id = next_room_id
+        next_room_id += 1
+    return room_id
+
 # API routes
 
 @socketio.on("create_room")
@@ -44,45 +58,19 @@ def create_room_handler(data):
         emit("error", "Please provide a username")
         return
 
-    # Optional
     seed = uuid.uuid4().hex
     if "seed" in data.keys() and data["seed"] != "":
         seed = data["seed"]
     
-    room_id = None
-    if len(free_room_ids) != 0:
-        room_id = free_room_ids.pop()
-    else:
-        room_id = next_room_id
-        next_room_id += 1
-
-    players = [Player(username, 0)]
     board = generate_board(seed, word_list)
+    new_room = Room([Player(username)], board, seed)
 
-    new_room = Room(players, board, seed, False)
+    room_id = get_next_room_id()
     rooms[room_id] = new_room
 
     join_room("%d" % room_id)
 
-    emit("room_created", {
-        "roomId": room_id,
-        "username": username,
-        "width": board.width,
-        "height": board.height,
-        "hasStarted": new_room.has_started,
-        "words": [{
-            "x": word[0],
-            "y": word[1],
-            "direction": word[2].value,
-            "word": word[3]
-        } for word in board.words],
-        "players": [{
-            "username": player.username,
-            "progress": player.progress
-        } for player in players],
-        "letters": board.letters,
-        "seed": seed
-    })
+    emit("room_created", new_room.to_json(room_id, username))
 
 @socketio.on("join_room")
 def join_room_handler(data):
@@ -122,25 +110,7 @@ def join_room_handler(data):
 
     join_room("%d" % room_id)
 
-    emit("joined_room", {
-        "roomId": room_id,
-        "username": username,
-        "width": room.board.width,
-        "height": room.board.height,
-        "hasStarted": room.has_started,
-        "words": [{
-            "x": word[0],
-            "y": word[1],
-            "direction": word[2].value,
-            "word": word[3]
-        } for word in room.board.words],
-        "players": [{
-            "username": player.username,
-            "progress": player.progress
-        } for player in room.players],
-        "letters": room.board.letters,
-        "seed": room.seed
-    })
+    emit("joined_room", room.to_json(room_id, username))
 
 # TODO: Use session storage instead of relying on the user to tell the truth
 
@@ -174,6 +144,47 @@ def start_game_handler(data):
     rooms[room_id].has_started = True
 
     emit("start_game", {}, to="%d" % room_id)
+
+@socketio.on("join_next_room")
+def join_next_room_handler(data):
+    global rooms
+    global word_list
+
+    room_id = data["room_id"]
+    username = data["username"]
+
+    leave_room("%d" % room_id)
+
+    if rooms[room_id].next_room != None:
+        new_room_id = rooms[room_id].next_room
+        rooms[new_room_id].players.append(Player(username))
+
+        socketio.emit("new_player", {
+            "username": username,
+            "progress": 0
+        }, to="%d" % new_room_id)
+
+        join_room("%d" % new_room_id)
+
+        emit("joined_room", rooms[new_room_id].to_json(new_room_id, username))
+    else:
+        seed = uuid.uuid4().hex
+        board = generate_board(seed, word_list)
+        new_room = Room([Player(username)], board, seed)
+
+        new_room_id = get_next_room_id()
+        rooms[new_room_id] = new_room
+        rooms[room_id].next_room = new_room_id
+
+        join_room("%d" % new_room_id)
+
+        emit("room_created", new_room.to_json(new_room_id, username))
+
+    # If everyone has moved to the next room, mark the room id to be reused
+    rooms[room_id].ghost_players.append(username)
+    if len(rooms[room_id].ghost_players) == len(rooms[room_id].players):
+        rooms.pop(room_id)
+        free_room_ids.append(room_id)
 
 if __name__ == "__main__":
     socketio.run(app, "0.0.0.0", port=int(os.getenv("BACKEND_PORT", "8080")), debug=True, keyfile=os.getenv("BACKEND_KEYFILE", None), certfile=os.getenv("BACKEND_CERTFILE", None))
