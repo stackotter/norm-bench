@@ -46,9 +46,10 @@
         if (grid.placedWords.includes(guess) || answersRevealed) {
             return
         }
-
+        
+        let normalizedGuess = guess.toLowerCase().trim();
         for (const word of room.words) {
-            if (word.word == guess) {
+            if (word.word == normalizedGuess) {
                 grid.placeWord(word, false, false);
                 grid = grid;
 
