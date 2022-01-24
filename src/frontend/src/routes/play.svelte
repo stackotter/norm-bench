@@ -92,8 +92,7 @@
         }
     }
 
-    const giveUp = () => {
-        gaveUp = true;
+    const revealAnswers = () => {
         room.words.forEach(word => {
             if (!grid.placedWords.includes(word.word)) {
                 grid.placeWord(word, false, true);
@@ -102,12 +101,23 @@
         grid = grid;
     }
 
+    const giveUp = () => {
+        gaveUp = true;
+        revealAnswers();
+    }
+
     const nextGame = () => {
         $socket?.emit("join_next_room", {
             "room_id": room.roomId,
             "username": room.username,
         });
     }
+
+    $: room.winner && (() => {
+        if (room.winner != room.username) {
+            revealAnswers();
+        }
+    })()
 </script>
 
 <Centered>
