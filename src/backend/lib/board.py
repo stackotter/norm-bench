@@ -112,11 +112,11 @@ class Board:
         """Attempts to place a word into the crossword, returns True if it succeeds to place the word."""
 
         # Skip plurals of words that have already been placed (and vice versa)
-        words = map(lambda word: word[3], self.words)
-        if not word.endswith("s") and word + "s" in words:
-            return
-        if word.endswith("s") and word[:-1] in words:
-            return
+        words = list(map(lambda word: word[3], self.words))
+        if not word[-1] == "s" and word + "s" in words:
+            return True
+        if word[-1] == "s" and word[:-1] in words:
+            return True
 
         # Shuffle the placed words to create some variation in placement
         placed_words = self.words
