@@ -22,6 +22,8 @@ export type Room = {
     letters: string[],
     seed: string,
     hasStarted: boolean,
+    letterCount: number,
+    minimumWordLength: number,
     winner?: string,
 };
 

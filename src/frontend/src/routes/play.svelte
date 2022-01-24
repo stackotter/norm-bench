@@ -173,6 +173,8 @@
         <div id="room-info">
             <div>Room id: {room.roomId}</div>
             <div>Seed: {room.seed}</div>
+            <div>Letter count: {room.letterCount}</div>
+            <div>Minimum word length: {room.minimumWordLength}</div>
         </div>
     {:else}
         <div>Loading...</div>

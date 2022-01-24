@@ -47,7 +47,7 @@ class WordList:
         with open(file_name, 'w') as f:
             f.write("\n".join(self.words))
 
-    def choose_normbench_words(self, letter_count: int) -> list[str]:
+    def choose_normbench_words(self, letter_count: int, minimum_word_length: int) -> list[str]:
         """Chooses a random 7 letter word and finds all anagrams. Returns a list containing the word and its anagrams. The word is always first in the list"""
 
         offset = ord('a')
@@ -68,7 +68,7 @@ class WordList:
         seed_word = random.choice(n_letter_words)
         seed_word_product = prime_product(seed_word)
 
-        anagrams: list[str] = [seed_word]
+        anagrams: list[str] = []
 
         # Find all n letter anagrams
         for word in n_letter_words:
@@ -79,18 +79,29 @@ class WordList:
         # Find all anagrams with less than n letters
         for word in smaller_words:
             product = prime_product(word)
-            if len(word) >= 3 and (seed_word_product / product).is_integer():
+            if len(word) >= minimum_word_length and (seed_word_product / product).is_integer():
                 anagrams.append(word)
 
-        # Remove either the word or its plural if both appear
-        for word in anagrams:
-            if not word.endswith("s") and word + "s" in anagrams:
-                if word + "s" == seed_word:
-                    anagrams.remove(word)
-                elif random.choice([True, False]):
-                    anagrams.remove(word)
-                else:
-                    anagrams.remove(word + "s")
-        
-        return anagrams
+        if len(anagrams) > 200:
+            random.shuffle(anagrams)
+            anagrams = anagrams[:200]
+            
+        words = [seed_word]
+        words.extend(anagrams)
+
+        return words
+
+    def print_count_per_length(self):
+        lengths: dict[int, int] = {}
+        for word in self.words:
+            length = len(word)
+            if length in lengths.keys():
+                lengths[length] += 1
+            else:
+                lengths[length] = 1
+
+        lengths = list(lengths.items())
+        lengths = sorted(lengths, key=lambda x: x[0])
+        for (length, count) in lengths:
+            print("The number of %d letter words is %d" % (length, count))
 

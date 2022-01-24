@@ -15,6 +15,8 @@ class Room:
     seed: str
     has_started: bool = False
     next_room: Optional[int] = None
+    letter_count: int = 7
+    minimum_word_length: int = 3
     ghost_players: list[str] = field(default_factory=list) # Players that have left the room but are still stored for the leaderboard
 
     def to_json(self, room_id, username):
@@ -35,5 +37,7 @@ class Room:
                 "progress": player.progress
             } for player in self.players],
             "letters": self.board.letters,
-            "seed": self.seed
+            "seed": self.seed,
+            "letterCount": self.letter_count,
+            "minimumWordLength": self.minimum_word_length
         }

@@ -58,18 +58,31 @@ def create_room_handler(data):
         emit("error", "Please provide a username")
         return
 
+    # Default values
     seed = uuid.uuid4().hex
+    letter_count = 7
+    minimum_word_length = 3
+
+    # If values were provided, replace the default values
     if "seed" in data.keys() and data["seed"] != "":
         seed = data["seed"]
-    
-    board = generate_board(seed, word_list)
-    new_room = Room([Player(username)], board, seed)
+    if "letter_count" in data.keys():
+        letter_count = data["letter_count"]
+    if "minimum_word_length" in data.keys():
+        minimum_word_length = data["minimum_word_length"]
 
+    # Generate the board
+    board = generate_board(seed, word_list, letter_count, minimum_word_length)
+    
+    # Create the room
+    new_room = Room([Player(username)], board, seed, letter_count=letter_count, minimum_word_length=minimum_word_length)
     room_id = get_next_room_id()
     rooms[room_id] = new_room
 
+    # Join the room
     join_room("%d" % room_id)
 
+    # Notify the client
     emit("room_created", new_room.to_json(room_id, username))
 
 @socketio.on("join_room")
@@ -169,8 +182,11 @@ def join_next_room_handler(data):
         emit("joined_room", rooms[new_room_id].to_json(new_room_id, username))
     else:
         seed = uuid.uuid4().hex
-        board = generate_board(seed, word_list)
-        new_room = Room([Player(username)], board, seed)
+        letter_count = rooms[room_id].letter_count
+        minimum_word_length = rooms[room_id].minimum_word_length
+
+        board = generate_board(seed, word_list, letter_count, minimum_word_length)
+        new_room = Room([Player(username)], board, seed, letter_count=letter_count, minimum_word_length=minimum_word_length)
 
         new_room_id = get_next_room_id()
         rooms[new_room_id] = new_room

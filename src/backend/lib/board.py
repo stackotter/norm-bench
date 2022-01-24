@@ -111,9 +111,16 @@ class Board:
     def try_place(self, word: str) -> bool:
         """Attempts to place a word into the crossword, returns True if it succeeds to place the word."""
 
+        # Skip plurals of words that have already been placed (and vice versa)
+        if not word.endswith("s") and word + "s" in self.words:
+            return
+        if word.endswith("s") and word[:-1] in self.words:
+            return
+
+        # Shuffle the placed words to create some variation in placement
         placed_words = self.words
         shuffle(placed_words)
-        # placed_words = sorted(placed_words, key=lambda x: int(len(x)/4))
+
         for (placed_x, placed_y, placed_direction, placed_word) in placed_words:
             # Find all locations that letters match between the two words
             locations: dict[str, list[int]] = {}
@@ -151,9 +158,11 @@ class Board:
     def generate(self, words: list[str]):
         """Adds a list of words into the cross word"""
 
+        print("Number of words: %d" % len(words))
         # Sort by length in descending order (attempt to place bigger words first)
         words = list(reversed(sorted(words, key=len)))
 
+        print("Placing seed word")
         # Place a seed word if the board is currently empty
         if len(self.words) == 0:
             first_word = words.pop(0)
@@ -168,6 +177,7 @@ class Board:
                 y = int(self.height / 2 - len(first_word) / 2)
                 self.place_word(first_word, x, y, direction)
 
+        print("Sorting words into buckets")
         # Sort the words by size (each bucket has two sizes of words to make it a bit more interesting)
         buckets: dict[int, list[str]] = {}
         for word in words:
@@ -177,6 +187,7 @@ class Board:
             else:
                 buckets[length] = [word]
 
+        print("Placing words")
         # Each word gets retried twice at different stages. Once in the round after it was first tried, and once at the end when all words have been placed or attempted twice.
         discarded_words: list[str] = []
         unused_words: list[str] = []

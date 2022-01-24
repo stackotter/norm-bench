@@ -5,12 +5,12 @@ from typing import Optional
 from lib import Board, Direction
 from lib.word_list import WordList
 
-def generate_board(seed: str, word_list: WordList) -> (Board, str):
+def generate_board(seed: str, word_list: WordList, letter_count: int, minimum_word_length: int) -> (Board, str):
     board = Board(20, 20)
     if seed != "norm":
         random.seed(seed)
 
-        words = word_list.choose_normbench_words(7)
+        words = word_list.choose_normbench_words(letter_count, minimum_word_length)
         
         board.generate(words)
         board.letters = [char for char in words[0]]
