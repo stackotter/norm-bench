@@ -13,7 +13,7 @@
     var room;
     var grid;
 
-    var gaveUp = false;
+    var answersRevealed = false;
     var popupDismissed = false;
 
     // Timer
@@ -31,7 +31,7 @@
         if (!room || room.roomId != value.roomId) {
             grid = new Grid(value);
             shuffleLetters();
-            gaveUp = false;
+            answersRevealed = false;
             popupDismissed = false;
             hasStartedTimer = false;
             timeString = null;
@@ -43,7 +43,7 @@
     onDestroy(unsubscribe);
 
     const submitGuess = () => {
-        if (grid.placedWords.includes(guess)) {
+        if (grid.placedWords.includes(guess) || answersRevealed) {
             return
         }
 
@@ -85,7 +85,7 @@
             hasStartedTimer = true;
             const timer = startTimer((time) => {
                 timeString = time;
-                if (room.winner || gaveUp) {
+                if (room.winner || answersRevealed) {
                     clearInterval(timer);
                 }
             });
@@ -98,17 +98,13 @@
     }
 
     const revealAnswers = () => {
+        answersRevealed = true;
         room.words.forEach(word => {
             if (!grid.placedWords.includes(word.word)) {
                 grid.placeWord(word, false, true);
             }
         });
         grid = grid;
-    }
-
-    const giveUp = () => {
-        gaveUp = true;
-        revealAnswers();
     }
 
     const nextGame = () => {
@@ -168,8 +164,8 @@
                     </div>
                 {/each}
 
-                <button class="button" id="give-up" on:click={(gaveUp || room.winner) ? nextGame : giveUp}>
-                    {(gaveUp || room.winner) ? "Next" : "Give up"}
+                <button class="button" id="give-up" on:click={(answersRevealed || room.winner) ? nextGame : revealAnswers}>
+                    {(answersRevealed || room.winner) ? "Next" : "Give up"}
                 </button>
             </div>
         </div>
