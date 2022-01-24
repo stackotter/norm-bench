@@ -79,7 +79,7 @@ class WordList:
         # Find all anagrams with less than n letters
         for word in smaller_words:
             product = prime_product(word)
-            if len(word) >= minimum_word_length and (seed_word_product / product).is_integer():
+            if len(word) >= minimum_word_length and seed_word_product % product == 0:
                 anagrams.append(word)
 
         if len(anagrams) > 200:
