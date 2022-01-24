@@ -28,9 +28,14 @@
     // Handlers
 
     const unsubscribe = room_store.subscribe(value => {
-        if (!room) {
+        if (!room || room.roomId != value.roomId) {
             grid = new Grid(value);
             shuffleLetters();
+            gaveUp = false;
+            popupDismissed = false;
+            hasStartedTimer = false;
+            timeString = null;
+            guess = "";
         }
         room = value;
     });
