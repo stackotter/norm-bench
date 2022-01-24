@@ -168,6 +168,10 @@
                 <button class="button" id="give-up" on:click={(answersRevealed || room.winner) ? nextGame : revealAnswers}>
                     {(answersRevealed || room.winner) ? "Next" : "Give up"}
                 </button>
+
+                {#if answersRevealed || room.winner }
+                    <div id="seed">Seed: {room.seed}</div>
+                {/if}
             </div>
         </div>
 
@@ -178,13 +182,13 @@
                     <button class="button" id="next-button" on:click={nextGame}>
                         Next
                     </button>
+                    <div id="seed">Seed: {room.seed}</div>
                 </div>
             </div>
         {/if}
 
         <div id="room-info">
             <div>Room id: {room.roomId}</div>
-            <div>Seed: {room.seed}</div>
             <div>Letter count: {room.letterCount}</div>
             <div>Minimum word length: {room.minimumWordLength}</div>
         </div>
@@ -194,6 +198,11 @@
 </Centered>
 
 <style>
+    #seed {
+        margin-top: 1.5rem;
+        font-size: 1rem;
+    }
+
     #timer {
         font-family: monospace;
         font-size: 1.5rem;
