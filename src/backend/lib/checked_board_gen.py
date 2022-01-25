@@ -473,8 +473,7 @@ def create_board(mainword,words,maxheight=20,maxwidth=20,maxretries=1000):
 
         for loc,data in zip(locs,fill):
             word,displacement=data
-            for i in derivedwords(word):
-                words.remove(i)
+            words-=derivedwords(word)
             r,c,dir=loc
             if dir=='a':
                 grid.add_word(word,r,c-displacement,dir)
