@@ -7,6 +7,7 @@
 
     var isLoading = false;
     var error = null;
+    var showAdvancedSettings = false;
 
     // Inputs
 
@@ -54,14 +55,22 @@
         <form on:submit|preventDefault={handleSubmit}>
             <input type="text" bind:value={username} placeholder="Username">
             <input type="text" bind:value={seed} placeholder="Seed (optional)">
-            <div class="label">Letter count: {letterCount}</div>
-            <input type="range" min="4" max="20" bind:value={letterCount} class="slider">
-            <div class="label">Minimum word length: {minimumWordLength}</div>
-            <input type="range" min="3" max={letterCount <= 14 ? letterCount - 1 : 14} bind:value={minimumWordLength} class="slider">
-            <div class="row">
-                <div class="label">Collaboration:</div>
-                <Checkbox bind:value={isCollaborative}/>
+
+            <div class="label link" on:click={() => {showAdvancedSettings = !showAdvancedSettings}} style={showAdvancedSettings ? "margin-bottom: -0.5rem !important;" : ""}>
+                {showAdvancedSettings ? "Hide advanced" : "Show advanced"}
             </div>
+
+            {#if showAdvancedSettings}
+                <div class="label">Letter count: {letterCount}</div>
+                <input type="range" min="4" max="20" bind:value={letterCount} class="slider">
+                <div class="label">Minimum word length: {minimumWordLength}</div>
+                <input type="range" min="3" max={letterCount <= 14 ? letterCount - 1 : 14} bind:value={minimumWordLength} class="slider">
+                <div class="row">
+                    <div class="label">Collaboration:</div>
+                    <Checkbox bind:value={isCollaborative}/>
+                </div>
+            {/if}
+
             <div class="button-group">
                 <a href="/" class="button secondary-button">Cancel</a>
                 <button class="button" type="submit">Create</button>
@@ -81,6 +90,14 @@
 
     .label {
         margin-right: 0.5rem;
+    }
+
+    .link {
+        color: #0099ff;
+        text-align: center;
+        margin-top: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
+        cursor: pointer;
     }
 
     #error {
