@@ -203,4 +203,4 @@ def join_next_room_handler(data):
         free_room_ids.append(room_id)
 
 if __name__ == "__main__":
-    socketio.run(app, "0.0.0.0", port=int(os.getenv("BACKEND_PORT", "8080")), debug=True, keyfile=os.getenv("BACKEND_KEYFILE", None), certfile=os.getenv("BACKEND_CERTFILE", None))
+    socketio.run(app, "0.0.0.0", port=int(os.getenv("BACKEND_PORT", "8081")), debug=True, keyfile=os.getenv("BACKEND_KEYFILE", None), certfile=os.getenv("BACKEND_CERTFILE", None))
