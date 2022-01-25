@@ -12,15 +12,6 @@ export const isInRoom = () => {
     return !isRoomNull
 }
 
-const joinRoom = json => {
-    room_store.set(json)
-    if (json.hasStarted) {
-        goto("/play")
-    } else {
-        goto("/lobby")
-    }
-}
-
 export const createSocket = () => {
     var socket = io(backendURL);
 
@@ -42,10 +33,6 @@ export const createSocket = () => {
                 }
             }
 
-            if (room.isCollaborative) {
-                room.placedWords.push(updated_player.word);
-            }
-
             room.players.sort((firstPlayer, secondPlayer) => { return firstPlayer.progress > secondPlayer.progress ? -1 : 1 });
 
             return room
@@ -59,7 +46,7 @@ export const createSocket = () => {
                 room.hasStarted = true;
                 goto("/play");
             }
-            return room
+            return room;
         });
     });
 
@@ -67,23 +54,34 @@ export const createSocket = () => {
         if (!isInRoom()) { return }
         room_store.update(room => {
             room.winner = data.winner;
-            return room
-        })
+            return room;
+        });
+    });
+
+    socket.on("word_placed", data => {
+        if (!isInRoom()) { return }
+        var word = data.word;
+        room_store.update(room => {
+            room.placedWords.push(word);
+            return room;
+        });
     })
 
-    socket.on("joined_room", joinRoom);
-
-    socket.on("room_created", joinRoom);
+    socket.on("join_room", json => {
+        room_store.set(json);
+        if (json.hasStarted) {
+            goto("/play");
+        } else {
+            goto("/lobby");
+        }
+    });
     
     return socket
 }
 
-export const emitProgressUpdate = (progress: number, username: string, roomId: number, word: number) => {
+export const emitProgressUpdate = (word: number) => {
     socket.update(socket => {
-        socket.emit("update_progress", {
-            "username": username,
-            "room_id": roomId,
-            "progress": progress,
+        socket.emit("place_word", {
             "word": word,
         });
         return socket;

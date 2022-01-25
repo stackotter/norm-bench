@@ -93,7 +93,7 @@
     }
 
     .link {
-        color: #EF894A;
+        color: blue;
         text-align: center;
         margin-top: 1.5rem !important;
         margin-bottom: 1.5rem !important;

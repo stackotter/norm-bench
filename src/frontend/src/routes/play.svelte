@@ -36,9 +36,9 @@
             hasStartedTimer = false;
             timeString = null;
             guess = "";
-        } else if (room.isCollaborative && grid.placedWords.length < value.placedWords.length) {
-            for (var i = grid.placedWords.length; i < value.placedWords.length; i++) {
-                var word = value.words[value.placedWords[i]];
+        } else if (room.isCollaborative) {
+            for (const word_index of room.placedWords) {
+                const word = room.words[word_index];
                 if (!grid.placedWords.includes(word.word)) {
                     grid.placeWord(word, false, false);
                 }
@@ -56,7 +56,7 @@
         }
         
         let normalizedGuess = guess.toLowerCase().trim();
-        var index = 0;
+        var word_index = 0;
         for (const word of room.words) {
             if (word.word == normalizedGuess) {
                 // Place the word
@@ -67,7 +67,7 @@
                 guess = "";
                 
                 // Notify other players of our progress
-                emitProgressUpdate(grid.placedWords.length, room.username, room.roomId, index);
+                emitProgressUpdate(word_index);
                 
                 // Check if we've won
                 if (grid.placedWords.length == room.words.length) {
@@ -90,20 +90,20 @@
                     }
 
                     if (extraWord) {
-                        let index = room.words.findIndex(word => { return word.word == extraWord });
-                        let word = room.words[index];
+                        let word_index = room.words.findIndex(word => { return word.word == extraWord });
+                        let word = room.words[word_index];
 
                         grid.placeWord(word, false, false);
                         grid = grid;
 
                         // Notify other players of our progress
-                        emitProgressUpdate(grid.placedWords.length, room.username, room.roomId, index);
+                        emitProgressUpdate(word_index);
                     }
                 }
 
                 return
             }
-            index += 1;
+            word_index += 1;
         }
     }
 
