@@ -37,9 +37,13 @@ export const createSocket = () => {
         room_store.update(room => {
             for (var i = 0; i < room.players.length; i++) {
                 if (room.players[i].username == updated_player.username) {
-                    console.log("Found player to update")
                     room.players[i].progress = updated_player.progress;
+                    break
                 }
+            }
+
+            if (room.isCollaborative) {
+                room.placedWords.push(updated_player.word);
             }
 
             room.players.sort((firstPlayer, secondPlayer) => { return firstPlayer.progress > secondPlayer.progress ? -1 : 1 });
@@ -74,14 +78,13 @@ export const createSocket = () => {
     return socket
 }
 
-export const emitProgressUpdate = (progress: number, username: string, roomId: number) => {
-    console.log("Emitting progress update")
+export const emitProgressUpdate = (progress: number, username: string, roomId: number, word: number) => {
     socket.update(socket => {
-        console.log("Mutating socket")
         socket.emit("update_progress", {
             "username": username,
             "room_id": roomId,
             "progress": progress,
+            "word": word,
         });
         return socket;
     });

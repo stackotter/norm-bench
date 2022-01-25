@@ -19,6 +19,10 @@ export class Grid {
         room.words.forEach(word => {
             this.placeWord(word, true, false);
         });
+
+        room.placedWords.forEach(word => {
+            this.placeWord(room.words[word], false, false);
+        })
     }
 
     setCell(x: number, y: number, value: string) {

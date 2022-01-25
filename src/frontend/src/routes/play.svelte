@@ -3,15 +3,15 @@
     import { room_store, socket } from '$lib/stores';
     import { onDestroy } from 'svelte';
 
-    import { shuffleLetters } from '$lib/room';
+    import { Room, shuffleLetters, Word } from '$lib/room';
     import { startTimer } from '$lib/timer';
     import { Grid } from '$lib/grid';
     import { emitProgressUpdate } from '$lib/socket';
 
     // Game state
 
-    var room;
-    var grid;
+    var room: Room | null;
+    var grid: Grid | null;
 
     var answersRevealed = false;
     var popupDismissed = false;
@@ -36,6 +36,14 @@
             hasStartedTimer = false;
             timeString = null;
             guess = "";
+        } else if (room.isCollaborative && grid.placedWords.length < value.placedWords.length) {
+            for (var i = grid.placedWords.length; i < value.placedWords.length; i++) {
+                var word = value.words[value.placedWords[i]];
+                if (!grid.placedWords.includes(word.word)) {
+                    grid.placeWord(word, false, false);
+                }
+            }
+            grid = grid;
         }
         room = value;
     });
@@ -48,27 +56,20 @@
         }
         
         let normalizedGuess = guess.toLowerCase().trim();
+        var index = 0;
         for (const word of room.words) {
             if (word.word == normalizedGuess) {
+                // Place the word
                 grid.placeWord(word, false, false);
                 grid = grid;
 
+                // Clear the guess input
                 guess = "";
-
-                if (room.seed == "norm") {
-                    if (word.word == "on" && grid.placedWords.includes("men") && !grid.placedWords.includes("no")) {
-                        grid.placedWords.push("no");
-                    } else if (word.word == "no" && grid.placedWords.includes("normalised") && !grid.placedWords.includes("on")) {
-                        grid.placedWords.push("on");
-                    } else if (word.word == "men" && grid.placedWords.includes("on") && !grid.placedWords.includes("no")) {
-                        grid.placedWords.push("no");
-                    } else if (word.word == "normalised" && grid.placedWords.includes("no") && !grid.placedWords.includes("on")) {
-                        grid.placedWords.push("on");
-                    }
-                }
                 
-                emitProgressUpdate(grid.placedWords.length, room.username, room.roomId);
-
+                // Notify other players of our progress
+                emitProgressUpdate(grid.placedWords.length, room.username, room.roomId, index);
+                
+                // Check if we've won
                 if (grid.placedWords.length == room.words.length) {
                     room_store.update(room => {
                         room.winner = room.username;
@@ -76,8 +77,33 @@
                     })
                 }
 
+                if (room.seed == "norm") {
+                    var extraWord: string | null = null;
+                    if (word.word == "on" && grid.placedWords.includes("men") && !grid.placedWords.includes("no")) {
+                        extraWord = "no";
+                    } else if (word.word == "no" && grid.placedWords.includes("normalised") && !grid.placedWords.includes("on")) {
+                        extraWord = "on";
+                    } else if (word.word == "men" && grid.placedWords.includes("on") && !grid.placedWords.includes("no")) {
+                        extraWord = "no";
+                    } else if (word.word == "normalised" && grid.placedWords.includes("no") && !grid.placedWords.includes("on")) {
+                        extraWord = "on";
+                    }
+
+                    if (extraWord) {
+                        let index = room.words.findIndex(word => { return word.word == extraWord });
+                        let word = room.words[index];
+
+                        grid.placeWord(word, false, false);
+                        grid = grid;
+
+                        // Notify other players of our progress
+                        emitProgressUpdate(grid.placedWords.length, room.username, room.roomId, index);
+                    }
+                }
+
                 return
             }
+            index += 1;
         }
     }
 
@@ -158,12 +184,19 @@
 
             <div class="column" id="leaderboard-column">
                 <div id="timer">{timeString || "00:00.000"}</div>
-                {#each room.players as player}
+                {#if !room.isCollaborative}
+                    {#each room.players as player}
+                        <div class="progress">
+                            <div class="indicator" style="width: {player.progress / room.words.length * 100}%"/>
+                            <div class="label">{player.username}</div>
+                        </div>
+                    {/each}
+                {:else}
                     <div class="progress">
-                        <div class="indicator" style="width: {player.progress / room.words.length * 100}%"/>
-                        <div class="label">{player.username}</div>
+                        <div class="indicator" style="width: {room.placedWords.length / room.words.length * 100}%"/>
+                        <div class="label">Team</div>
                     </div>
-                {/each}
+                {/if}
 
                 <button class="button" id="give-up" on:click={(answersRevealed || room.winner) ? nextGame : revealAnswers}>
                     {(answersRevealed || room.winner) ? "Next" : "Give up"}
@@ -178,7 +211,7 @@
         {#if room.winner && !popupDismissed}
             <div id="game-ended-popup" on:click={() => {popupDismissed = true}}>
                 <div id="popup-text" on:click|stopPropagation={() => {return}}>
-                    {room.winner == room.username ? "You win!" : `${room.winner} won!`}
+                    {room.isCollaborative ? "Go team!" : (room.winner == room.username ? "You win!" : `${room.winner} won!`)}
                     <button class="button" id="next-button" on:click={nextGame}>
                         Next
                     </button>
@@ -191,6 +224,7 @@
             <div>Room id: {room.roomId}</div>
             <div>Letter count: {room.letterCount}</div>
             <div>Minimum word length: {room.minimumWordLength}</div>
+            <div>Collaborative: {room.isCollaborative}</div>
         </div>
     {:else}
         <div>Loading...</div>

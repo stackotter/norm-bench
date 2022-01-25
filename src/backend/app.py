@@ -62,6 +62,7 @@ def create_room_handler(data):
     seed = uuid.uuid4().hex
     letter_count = 7
     minimum_word_length = 3
+    is_collaborative = False
 
     # If values were provided, replace the default values
     if "seed" in data.keys() and data["seed"] != "":
@@ -70,12 +71,14 @@ def create_room_handler(data):
         letter_count = data["letter_count"]
     if "minimum_word_length" in data.keys():
         minimum_word_length = data["minimum_word_length"]
+    if "is_collaborative" in data.keys():
+        is_collaborative = data["is_collaborative"]
 
     # Generate the board
     board = generate_board(seed, word_list, letter_count, minimum_word_length)
     
     # Create the room
-    new_room = Room([Player(username)], board, seed, letter_count=letter_count, minimum_word_length=minimum_word_length)
+    new_room = Room([Player(username)], board, seed, letter_count=letter_count, minimum_word_length=minimum_word_length, is_collaborative=is_collaborative)
     room_id = get_next_room_id()
     rooms[room_id] = new_room
 
@@ -134,6 +137,10 @@ def update_progress_handler(data):
     room_id = data["room_id"]
     username = data["username"]
     progress = data["progress"]
+    word = data["word"]
+
+    if rooms[room_id].is_collaborative:
+        rooms[room_id].placed_words.append(word)
 
     for (i, player) in enumerate(rooms[room_id].players):
         if player.username == username:
@@ -141,7 +148,8 @@ def update_progress_handler(data):
 
     emit("progress_update", {
         "username": username,
-        "progress": progress
+        "progress": progress,
+        "word": word
     }, to="%d" % room_id)
 
     if progress == len(rooms[room_id].board.words):
@@ -184,9 +192,10 @@ def join_next_room_handler(data):
         seed = uuid.uuid4().hex
         letter_count = rooms[room_id].letter_count
         minimum_word_length = rooms[room_id].minimum_word_length
+        is_collaborative = rooms[room_id].is_collaborative
 
         board = generate_board(seed, word_list, letter_count, minimum_word_length)
-        new_room = Room([Player(username)], board, seed, letter_count=letter_count, minimum_word_length=minimum_word_length)
+        new_room = Room([Player(username)], board, seed, letter_count=letter_count, minimum_word_length=minimum_word_length, is_collaborative=is_collaborative)
 
         new_room_id = get_next_room_id()
         rooms[new_room_id] = new_room
