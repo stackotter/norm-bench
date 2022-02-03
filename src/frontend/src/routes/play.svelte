@@ -184,19 +184,18 @@
 
             <div class="column" id="leaderboard-column">
                 <div id="timer">{timeString || "00:00.000"}</div>
-                {#if !room.isCollaborative}
-                    {#each room.players as player}
-                        <div class="progress">
-                            <div class="indicator" style="width: {player.progress / room.words.length * 100}%"/>
-                            <div class="label">{player.username}</div>
-                        </div>
-                    {/each}
-                {:else}
-                    <div class="progress">
+                {#if room.isCollaborative}
+                    <div id="team-progress" class="progress">
                         <div class="indicator" style="width: {room.placedWords.length / room.words.length * 100}%"/>
                         <div class="label">Team</div>
                     </div>
                 {/if}
+                {#each room.players as player}
+                    <div class="progress">
+                        <div class="indicator" style="width: {player.progress / room.words.length * 100}%"/>
+                        <div class="label">{player.username}</div>
+                    </div>
+                {/each}
 
                 <button class="button" id="give-up" on:click={(answersRevealed || room.winner) ? nextGame : revealAnswers}>
                     {(answersRevealed || room.winner) ? "Next" : "Give up"}
@@ -329,6 +328,14 @@
         left: 0;
         top: 0;
         z-index: 0;
+    }
+
+    #team-progress .indicator {
+        background: #43ab1a;
+    }
+
+    #team-progress {
+        margin-bottom: 2rem;
     }
 
     .label {
