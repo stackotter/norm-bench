@@ -331,7 +331,7 @@
     }
 
     #team-progress .indicator {
-        background: #43ab1a;
+        background: #AB51CF;
     }
 
     #team-progress {
