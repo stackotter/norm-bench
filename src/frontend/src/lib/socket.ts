@@ -39,9 +39,10 @@ export const createSocket = () => {
         })
     });
 
-    socket.on("start_game", () => {
+    socket.on("start_game", data => {
         if (!isInRoom()) { return }
         room_store.update(room => {
+            room.startTime = data.startTime;
             if (!room.hasStarted) {
                 room.hasStarted = true;
                 goto("/play");

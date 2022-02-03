@@ -46,6 +46,16 @@
             grid = grid;
         }
         room = value;
+
+        if (!hasStartedTimer && room.hasStarted) {
+            hasStartedTimer = true;
+            const timer = startTimer(time => {
+                timeString = time;
+                if (room.winner || answersRevealed) {
+                    clearInterval(timer);
+                }
+            }, room.startTime);
+        }
     });
 
     onDestroy(unsubscribe);
@@ -108,16 +118,6 @@
     }
 
     const onKeyDown = (event) => {
-        if (!hasStartedTimer) {
-            hasStartedTimer = true;
-            const timer = startTimer((time) => {
-                timeString = time;
-                if (room.winner || answersRevealed) {
-                    clearInterval(timer);
-                }
-            });
-        }
-
         if (event.keyCode === 13) {
             event.preventDefault();
             submitGuess();

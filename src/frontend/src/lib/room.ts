@@ -26,6 +26,7 @@ export type Room = {
     minimumWordLength: number,
     isCollaborative: boolean,
     placedWords: number[],
+    startTime?: number,
     winner?: string,
 };
 

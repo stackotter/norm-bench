@@ -1,5 +1,7 @@
-export const startTimer = (callback) => {
-    let start = Date.now();
+export const startTimer = (callback, start: number | null) => {
+    if (start == null || start == undefined) {
+        start = Date.now();
+    }
     var timer: NodeJS.Timer;
     timer = setInterval(() => {
         let clock = Date.now() - start;

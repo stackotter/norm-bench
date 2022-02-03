@@ -4,6 +4,7 @@
     import Centered from '$lib/Centered.svelte';
     import { goto } from '$app/navigation';
     import { onDestroy } from 'svelte';
+import { time_ranges_to_array } from 'svelte/internal';
 
     var room;
 
@@ -20,7 +21,7 @@
         });
 
         $socket?.emit("start_game", {
-            "room_id": room.roomId
+            "time": Date.now()
         });
 
         goto("/play");

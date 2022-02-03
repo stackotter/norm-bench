@@ -182,8 +182,11 @@ def start_game_handler(data):
     room_id = session["room_id"]
 
     rooms[room_id].has_started = True
+    rooms[room_id].start_time = data["time"]
 
-    emit("start_game", {}, to="%d" % room_id)
+    emit("start_game", {
+        "startTime": data["time"]
+    }, to="%d" % room_id)
 
 @socketio.on("join_next_room")
 def join_next_room_handler(data):

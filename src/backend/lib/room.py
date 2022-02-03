@@ -13,6 +13,7 @@ class Room:
     players: list[Player]
     board: Board
     seed: str
+    start_time: Optional[int] = None
     has_started: bool = False
     next_room: Optional[int] = None
     letter_count: int = 7
@@ -44,4 +45,5 @@ class Room:
             "minimumWordLength": self.minimum_word_length,
             "isCollaborative": self.is_collaborative,
             "placedWords": self.placed_words,
+            "startTime": self.start_time
         }
